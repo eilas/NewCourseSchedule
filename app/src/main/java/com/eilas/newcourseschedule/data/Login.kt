@@ -1,5 +1,6 @@
 package com.eilas.newcourseschedule.data
 
+import android.content.SharedPreferences
 import android.os.Message
 import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
@@ -63,6 +64,6 @@ fun login(user: LoggedInUser): Result<LoggedInUser> {
 }
 
 fun logout() {
-
-    // TODO: revoke authentication
+    TODO("登出！")
+    // TODO: 登出且删除SharedPreferences
 }

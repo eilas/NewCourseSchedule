@@ -15,7 +15,7 @@ import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.register
-import com.eilas.newcourseschedule.ui.schedule.TempActivity
+import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_login_register.*
 
@@ -29,8 +29,9 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_login)
+
+        autoLogin(this)
 
         btn_login.setOnClickListener {
             loggedInUser = LoggedInUser(id.text.toString(), pwd.text.toString())
@@ -58,9 +59,10 @@ class LoginActivity : AppCompatActivity() {
 
 //                    登录/注册成功
                     3 -> {
-                        Toast.makeText(this@LoginActivity, "成功", Toast.LENGTH_SHORT)
+                        Toast.makeText(this@LoginActivity, "成功", Toast.LENGTH_SHORT).show()
+                        saveUser(this@LoginActivity, loggedInUser)
                         startActivity(
-                            Intent(this@LoginActivity, TempActivity::class.java).setFlags(
+                            Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                             )
                         )
@@ -115,5 +117,12 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+//        防止内存溢出
+        handle?.removeCallbacksAndMessages(null)
     }
 }
