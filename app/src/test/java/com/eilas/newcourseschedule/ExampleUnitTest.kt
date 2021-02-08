@@ -11,7 +11,12 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun test() {
+        val array = Array(13) { Array<String>(8, { i: Int -> i.toString() }) }
+        for (i in array) {
+            for (j in i)
+                print(j)
+            println()
+        }
     }
 }

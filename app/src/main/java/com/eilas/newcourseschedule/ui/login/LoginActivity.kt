@@ -57,9 +57,10 @@ class LoginActivity : AppCompatActivity() {
                         login(obj as LoggedInUser)
                     }.start()
 
+
 //                    登录/注册成功
                     3 -> {
-                        Toast.makeText(this@LoginActivity, "成功", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@LoginActivity, "登录成功", Toast.LENGTH_SHORT).show()
                         saveUser(this@LoginActivity, loggedInUser)
                         startActivity(
                             Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(
@@ -94,6 +95,7 @@ class LoginActivity : AppCompatActivity() {
                                         pwd.text.toString(),
                                         inflate.findViewById<EditText>(R.id.text_name).text.toString()
                                             .let {
+//                                                TODO:name判空使用其他方式
                                                 if (it.length == 0)
                                                     id.text.toString()
                                                 else

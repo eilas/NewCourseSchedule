@@ -15,10 +15,10 @@ fun loadUser(context: Context): LoggedInUser? {
     return context.getSharedPreferences("user", Context.MODE_PRIVATE).let {
         val id = it.getString("id", null)
         val pwd = it.getString("pwd", null)
-        if (id != null && pwd != null) {
+        if (id != null && pwd != null)
             LoggedInUser(id, pwd)
-        }
-        null
+        else
+            null
     }
 }
 
@@ -26,5 +26,6 @@ fun autoLogin(context: Context) {
     loadUser(context)?.let {
 //        自动登录在主线程请求
         login(it)
+        (context as LoginActivity).loggedInUser = it
     }
 }
