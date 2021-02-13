@@ -1,3 +1,2 @@
-include ':calendarview'
 include ':app'
 rootProject.name = "NewCourseSchedule"

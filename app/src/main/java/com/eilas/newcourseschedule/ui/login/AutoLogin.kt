@@ -22,6 +22,13 @@ fun loadUser(context: Context): LoggedInUser? {
     }
 }
 
+fun deleteUser(context: Context): Boolean {
+    Thread {
+        context.getSharedPreferences("user", Context.MODE_PRIVATE).edit().clear().apply()
+    }.start()
+    return true
+}
+
 fun autoLogin(context: Context) {
     loadUser(context)?.let {
 //        自动登录在主线程请求

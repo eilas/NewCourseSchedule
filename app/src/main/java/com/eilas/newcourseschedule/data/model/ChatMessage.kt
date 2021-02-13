@@ -1,3 +1,5 @@
 package com.eilas.newcourseschedule.data.model
 
-data class ChatMessage(val from: String, val to: String, val data: String)
+import java.util.*
+
+data class ChatMessage(val from: String, val to: String, val data: String, val date: Date)

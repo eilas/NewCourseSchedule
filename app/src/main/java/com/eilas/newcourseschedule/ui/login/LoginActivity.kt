@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
+import android.os.Parcelable
 import android.view.View
 import android.widget.EditText
 import android.widget.RadioGroup
@@ -65,7 +66,13 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(
                             Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                            )
+                            ).putExtras(Bundle().let {
+                                it.putParcelable(
+                                    "user",
+                                    loggedInUser as Parcelable
+                                )
+                                it
+                            })
                         )
                     }
 
