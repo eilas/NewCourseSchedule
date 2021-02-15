@@ -1,9 +1,12 @@
 package com.eilas.newcourseschedule.data
 
+import android.content.Context
+import android.content.Intent
 import android.os.Message
 import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.ui.login.LoginActivity
+import com.eilas.newcourseschedule.ui.login.deleteUser
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import okhttp3.Call
@@ -14,15 +17,16 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-fun login(user: LoggedInUser): Result<LoggedInUser> {
-    val gson = Gson()
-    try {
+fun login(user: LoggedInUser) {
+    Thread {
+        val gson = Gson()
+        val httpHelper = HttpHelper.obtain()
 //        发送登录信息
-        HttpHelper.okHttpClient.newCall(
+        httpHelper.okHttpClient.newCall(
             Request.Builder().post(
                 gson.toJson(user)
                     .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(HttpHelper.url + "/login").build()
+            ).url(httpHelper.url + "/login").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 Log.w("response", "failure!!!")
@@ -57,15 +61,16 @@ fun login(user: LoggedInUser): Result<LoggedInUser> {
             }
 
         })
-
-//        需要这个吗
-        return Result.success(user)
-    } catch (e: Throwable) {
-        return Result.failure(IOException("Error login in", e))
-    }
+        httpHelper.recycle()
+    }.start()
 }
 
-fun logout() {
-    TODO("登出！")
-    // TODO: 登出且删除SharedPreferences
+fun logout(context: Context) {
+    deleteUser(context)
+    context.startActivity(
+        Intent(
+            context,
+            LoginActivity::class.java
+        ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+    )
 }

@@ -18,7 +18,6 @@ import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
 import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.android.synthetic.main.activity_login_register.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -49,15 +48,10 @@ class LoginActivity : AppCompatActivity() {
                 val obj = msg.obj
                 when (msg.what) {
 //                    注册
-                    1 -> Thread {
-                        register(obj as LoggedInUser)
-                    }.start()
+                    1 -> register(obj as LoggedInUser)
 
 //                    登录
-                    2 -> Thread {
-                        login(obj as LoggedInUser)
-                    }.start()
-
+                    2 -> login(obj as LoggedInUser)
 
 //                    登录/注册成功
                     3 -> {
@@ -85,7 +79,7 @@ class LoginActivity : AppCompatActivity() {
                     5 -> {
                         var inflate = View.inflate(
                             this@LoginActivity,
-                            R.layout.activity_login_register,
+                            R.layout.alert_login_register,
                             null
                         )
 
@@ -102,7 +96,7 @@ class LoginActivity : AppCompatActivity() {
                                         pwd.text.toString(),
                                         inflate.findViewById<EditText>(R.id.text_name).text.toString()
                                             .let {
-//                                                TODO:name判空使用其他方式
+//                                                未输入姓名则使用id
                                                 if (it.length == 0)
                                                     id.text.toString()
                                                 else

@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.TextView
 import com.eilas.newcourseschedule.R
-import com.eilas.newcourseschedule.data.model.CourseInfo
+import com.eilas.newcourseschedule.data.model.CourseItemIndex
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.schedule_item.view.*
 
-class ScheduleAdapter(val context: Context, var courseList: ArrayList<CourseInfo>) : BaseAdapter() {
+class ScheduleAdapter(val context: Context, var courseList: ArrayList<CourseItemIndex>) : BaseAdapter() {
     val gson = Gson()
 
     override fun getCount(): Int {
@@ -39,10 +39,10 @@ class ScheduleAdapter(val context: Context, var courseList: ArrayList<CourseInfo
         }
 
         getItem(position).let {
-            it as CourseInfo
-            viewHolder.courseName.text = it.courseName
-            viewHolder.courseStrTime.text = it.courseStrTime
-            viewHolder.courseEndTime.text = it.courseEndTime
+            it as CourseItemIndex
+            viewHolder.courseName.text = it.courseInfo?.courseName ?: ""
+            viewHolder.courseStrTime.text = it.courseInfo?.courseStrTime1.toString()
+            viewHolder.courseEndTime.text = it.courseInfo?.courseEndTime1.toString()
         }
 
         return view

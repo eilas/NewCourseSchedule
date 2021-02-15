@@ -17,38 +17,34 @@ import java.io.IOException
 fun register(user: LoggedInUser) {
     Thread {
         val gson = Gson()
-        try {
+        val httpHelper = HttpHelper.obtain()
 //        发送注册信息
-            HttpHelper.okHttpClient.newCall(
-                Request.Builder().post(
-                    gson.toJson(user)
-                        .toRequestBody("application/json".toMediaTypeOrNull())
-                ).url(HttpHelper.url + "/register").build()
-            ).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.w("response", "failure!!!")
-                }
+        httpHelper.okHttpClient.newCall(
+            Request.Builder().post(
+                gson.toJson(user)
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+            ).url(httpHelper.url + "/register").build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                Log.w("response", "failure!!!")
+            }
 
-                override fun onResponse(call: Call, response: Response) {
-                    JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
-                        when (it) {
-                            "OK" -> {
-                                LoginActivity.handle?.sendMessage(Message.obtain().let {
-                                    it.what = 3
-                                    it
-                                })
-                            }
-                            else -> throw Exception("似乎进入了未知领域...")
+            override fun onResponse(call: Call, response: Response) {
+                JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
+                    when (it) {
+                        "OK" -> {
+                            LoginActivity.handle?.sendMessage(Message.obtain().let {
+                                it.what = 3
+                                it
+                            })
                         }
+                        else -> throw Exception("似乎进入了未知领域...")
                     }
                 }
+            }
 
-            })
-        } catch (e: Throwable) {
-            TODO()
-//            return Result.failure(IOException("Error register in", e))
-        }
-
+        })
+        httpHelper.recycle()
     }.start()
 }
 
