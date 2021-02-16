@@ -6,9 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.os.Parcelable
-import android.view.View
-import android.widget.EditText
-import android.widget.RadioGroup
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -16,8 +14,9 @@ import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.register
+import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
+import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
-import kotlinx.android.synthetic.main.activity_login.*
 
 class LoginActivity : AppCompatActivity() {
 
@@ -26,15 +25,22 @@ class LoginActivity : AppCompatActivity() {
     }
 
     lateinit var loggedInUser: LoggedInUser
+    private lateinit var activityLoginBinding: ActivityLoginBinding
+    private lateinit var alertLoginRegisterBinding: AlertLoginRegisterBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        activityLoginBinding = ActivityLoginBinding.inflate(layoutInflater)
+        alertLoginRegisterBinding = AlertLoginRegisterBinding.inflate(layoutInflater)
+        setContentView(activityLoginBinding.root)
 
         autoLogin(this)
 
-        btn_login.setOnClickListener {
-            loggedInUser = LoggedInUser(id.text.toString(), pwd.text.toString())
+        activityLoginBinding.btnLogin.setOnClickListener {
+            loggedInUser = LoggedInUser(
+                activityLoginBinding.id.text.toString(),
+                activityLoginBinding.pwd.text.toString()
+            )
             handle?.sendMessage(Message.obtain().let {
                 it.what = 2
                 it.obj = loggedInUser
@@ -60,12 +66,11 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(
                             Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                            ).putExtras(Bundle().let {
-                                it.putParcelable(
+                            ).putExtras(Bundle().apply {
+                                putParcelable(
                                     "user",
                                     loggedInUser as Parcelable
                                 )
-                                it
                             })
                         )
                     }
@@ -77,32 +82,28 @@ class LoginActivity : AppCompatActivity() {
 
 //                    无用户
                     5 -> {
-                        var inflate = View.inflate(
-                            this@LoginActivity,
-                            R.layout.alert_login_register,
-                            null
-                        )
-
+                        alertLoginRegisterBinding.root.parent?.apply {
+                            this as ViewGroup
+                            removeAllViews()
+                        }
 //                        弹框
                         AlertDialog.Builder(this@LoginActivity)
                             .setTitle("用户不存在")
                             .setMessage("注册？")
-                            .setView(inflate)
+                            .setView(alertLoginRegisterBinding.root)
                             .setPositiveButton(
                                 "是",
                                 DialogInterface.OnClickListener { dialog, which ->
                                     loggedInUser = LoggedInUser(
-                                        id.text.toString(),
-                                        pwd.text.toString(),
-                                        inflate.findViewById<EditText>(R.id.text_name).text.toString()
-                                            .let {
+                                        activityLoginBinding.id.text.toString(),
+                                        activityLoginBinding.pwd.text.toString(),
+                                        alertLoginRegisterBinding.textName.text.toString()
+                                            .apply {
 //                                                未输入姓名则使用id
-                                                if (it.length == 0)
-                                                    id.text.toString()
-                                                else
-                                                    it
+                                                if (length == 0)
+                                                    activityLoginBinding.id.text.toString()
                                             },
-                                        if (inflate.findViewById<RadioGroup>(R.id.group_sex).checkedRadioButtonId == R.id.radioButton_male)
+                                        if (alertLoginRegisterBinding.groupSex.checkedRadioButtonId == R.id.radioButton_male)
                                             LoggedInUser.Sex.MALE
                                         else
                                             LoggedInUser.Sex.FEMALE
@@ -114,8 +115,10 @@ class LoginActivity : AppCompatActivity() {
                                     })
                                 })
                             .setNegativeButton("否", null)
-                            .setCancelable(false)
-                            .show()
+                            .setCancelable(false).apply {
+                                if (!this@LoginActivity.isFinishing)
+                                    show()
+                            }
                     }
                 }
             }
@@ -127,5 +130,6 @@ class LoginActivity : AppCompatActivity() {
 
 //        防止内存溢出
         handle?.removeCallbacksAndMessages(null)
+        handle = null
     }
 }

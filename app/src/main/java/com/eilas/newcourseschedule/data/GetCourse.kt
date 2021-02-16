@@ -36,7 +36,7 @@ fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
                 Log.i("response", response.body?.string())
 /*
                 JsonParser().parse(response.body?.string()).asJsonObject.let {
-                    Log.i("course", it.asString)
+                    Log.i("response", response.body?.string())
                 }
 */
             }
@@ -45,7 +45,11 @@ fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
 
         httpHelper.recycle()
     }.start()
-    return courseList
+    return courseList.apply {
+        for (time in 0 until 13)
+            for (day in 0 until 8)
+                add(CourseItemIndex(time, day, null))
+    }
 }
 
 //查看单个课程信息
@@ -54,20 +58,16 @@ fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
 }*/
 
 fun saveCourse(user: LoggedInUser, course: CourseInfo) {
-
     Thread {
         val gson = Gson()
         val httpHelper = HttpHelper.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(
-                gson.toJson(
-                    JsonParser().parse(gson.toJson(course)).asJsonObject.addProperty(
-                        "id",
-                        user.id
-                    )
-                )
-                    .toRequestBody("application/json".toMediaTypeOrNull())
+                gson.toJson(HashMap<String, Any>().apply {
+                    put("user", user)
+                    put("course", course)
+                }).apply { Log.i("user + course",this) }.toRequestBody("application/json".toMediaTypeOrNull())
             ).url(httpHelper.url + "/course").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {

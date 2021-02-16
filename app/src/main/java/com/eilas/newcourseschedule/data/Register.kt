@@ -38,7 +38,10 @@ fun register(user: LoggedInUser) {
                                 it
                             })
                         }
-                        else -> throw Exception("似乎进入了未知领域...")
+                        else -> {
+                            Log.e("服务器返回", it)
+                            throw Exception("似乎进入了未知领域...")
+                        }
                     }
                 }
             }
