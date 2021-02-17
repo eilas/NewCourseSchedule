@@ -46,8 +46,8 @@ fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
         httpHelper.recycle()
     }.start()
     return courseList.apply {
-        for (time in 0 until 13)
-            for (day in 0 until 8)
+        for (time in 0 until 12)
+            for (day in 0 until 7)
                 add(CourseItemIndex(time, day, null))
     }
 }
@@ -67,7 +67,8 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo) {
                 gson.toJson(HashMap<String, Any>().apply {
                     put("user", user)
                     put("course", course)
-                }).apply { Log.i("user + course",this) }.toRequestBody("application/json".toMediaTypeOrNull())
+                }).apply { Log.i("user + course", this) }
+                    .toRequestBody("application/json".toMediaTypeOrNull())
             ).url(httpHelper.url + "/course").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {

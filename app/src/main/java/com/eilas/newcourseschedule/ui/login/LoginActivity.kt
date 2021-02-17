@@ -34,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
         alertLoginRegisterBinding = AlertLoginRegisterBinding.inflate(layoutInflater)
         setContentView(activityLoginBinding.root)
 
-        autoLogin(this)
+        autoLogin(this,activityLoginBinding.btnLogin)
 
         activityLoginBinding.btnLogin.setOnClickListener {
             loggedInUser = LoggedInUser(
@@ -61,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
 
 //                    登录/注册成功
                     3 -> {
-                        Toast.makeText(this@LoginActivity, "登录成功", Toast.LENGTH_SHORT).show()
                         saveUser(this@LoginActivity, loggedInUser)
                         startActivity(
                             Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(

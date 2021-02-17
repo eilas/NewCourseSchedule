@@ -8,17 +8,20 @@
         android:id="@+id/course_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="TextView" />
 
     <TextView
         android:id="@+id/course_str_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="TextView" />
 
     <TextView
         android:id="@+id/course_end_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="TextView" />
 </LinearLayout>

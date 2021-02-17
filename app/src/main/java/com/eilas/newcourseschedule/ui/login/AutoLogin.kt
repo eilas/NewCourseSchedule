@@ -1,8 +1,10 @@
 package com.eilas.newcourseschedule.ui.login
 
 import android.content.Context
+import android.view.View
 import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
+import com.google.android.material.snackbar.Snackbar
 
 fun saveUser(context: Context, user: LoggedInUser) {
     Thread {
@@ -21,6 +23,7 @@ fun loadUser(context: Context): LoggedInUser? {
             LoggedInUser.Sex.MALE
         else
             LoggedInUser.Sex.FEMALE
+
         if (id != null && pwd != null)
             LoggedInUser(id, pwd, name.toString(), sex)
         else
@@ -35,8 +38,9 @@ fun deleteUser(context: Context): Boolean {
     return true
 }
 
-fun autoLogin(context: Context) {
+fun autoLogin(context: Context, view: View) {
     loadUser(context)?.apply {
+        Snackbar.make(view, "自动登录中...", Snackbar.LENGTH_LONG).show()
         login(this)
         (context as LoginActivity).loggedInUser = this
     }

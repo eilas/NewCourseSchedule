@@ -3,6 +3,7 @@ package com.eilas.newcourseschedule.ui.schedule
 import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
@@ -40,9 +41,15 @@ class CourseScheduleActivity : AppCompatActivity() {
 
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> activityCourseScheduleBinding.drawerLayout.openDrawer(GravityCompat.START)
+            R.id.changeView -> TODO("切换视图！")
         }
         return true
     }
@@ -59,7 +66,6 @@ class CourseScheduleActivity : AppCompatActivity() {
 
 //        主界面
         activityCourseScheduleBinding.gridView.adapter = ScheduleAdapter(this, courseItemList)
-        activityCourseScheduleBinding.gridView.numColumns = 8
         activityCourseScheduleBinding.gridView.setOnItemClickListener { parent, view, position, id ->
             courseItemList[position].let {
                 kotlin.runCatching {
@@ -87,8 +93,8 @@ class CourseScheduleActivity : AppCompatActivity() {
                                         courseItemIndexList = ArrayList<CourseItemIndex>().apply {
                                             for (i in 0 until alertAddCourseBinding.lastTime.text.toString()
                                                 .toInt())
-//                                                gridView一列8个，故加入同一列的循环个courseItem
-                                                add(courseItemList[position + i * 8])
+//                                                gridView一列7个，故加入同一列的循环个courseItem
+                                                add(courseItemList[position + i * 7])
                                         }
                                     ))
                                 }
