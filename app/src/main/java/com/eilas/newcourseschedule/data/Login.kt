@@ -3,7 +3,6 @@ package com.eilas.newcourseschedule.data
 import android.content.Context
 import android.content.Intent
 import android.os.Message
-import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.ui.login.LoginActivity
 import com.eilas.newcourseschedule.ui.login.deleteUser
@@ -29,34 +28,21 @@ fun login(user: LoggedInUser) {
             ).url(httpHelper.url + "/login").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.w("response", "failure!!!")
+                LoginActivity.handle?.sendMessage(Message.obtain().apply { what = 6 })
             }
 
             override fun onResponse(call: Call, response: Response) {
 //                区分登录情况
 //                Log.i("response", response.body?.string())
                 JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
-                    when (it) {
-                        "OK" -> {
-                            LoginActivity.handle?.sendMessage(Message.obtain().let {
-                                it.what = 3
-                                it
-                            })
+                    LoginActivity.handle?.sendMessage(Message.obtain().apply {
+                        when (it) {
+                            "OK" -> what = 3
+                            "pwdError" -> what = 4
+                            "noUser" -> what = 5
+                            else -> throw Exception("未知错误")
                         }
-                        "pwdError" -> {
-                            LoginActivity.handle?.sendMessage(Message.obtain().let {
-                                it.what = 4
-                                it
-                            })
-                        }
-                        "noUser" -> {
-                            LoginActivity.handle?.sendMessage(Message.obtain().let {
-                                it.what = 5
-                                it
-                            })
-                        }
-                        else -> throw Exception("似乎进入了未知领域...")
-                    }
+                    })
                 }
             }
 

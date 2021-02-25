@@ -5,6 +5,7 @@
     <item
         android:id="@+id/changeView"
         android:contentDescription="切换课程表周/月视图"
-        android:title="切换视图"
+        android:icon="@android:drawable/ic_menu_week"
+        android:title="week_view"
         app:showAsAction="always" />
 </menu>

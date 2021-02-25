@@ -17,6 +17,7 @@ import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
 import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.google.android.material.snackbar.Snackbar
 
 class LoginActivity : AppCompatActivity() {
 
@@ -34,7 +35,7 @@ class LoginActivity : AppCompatActivity() {
         alertLoginRegisterBinding = AlertLoginRegisterBinding.inflate(layoutInflater)
         setContentView(activityLoginBinding.root)
 
-        autoLogin(this,activityLoginBinding.btnLogin)
+        autoLogin(this, activityLoginBinding.btnLogin)
 
         activityLoginBinding.btnLogin.setOnClickListener {
             loggedInUser = LoggedInUser(
@@ -119,6 +120,12 @@ class LoginActivity : AppCompatActivity() {
                                     show()
                             }
                     }
+//                    其他情况
+                    6 -> Snackbar.make(
+                        activityLoginBinding.btnLogin,
+                        "登录失败~服务器无响应~",
+                        Snackbar.LENGTH_LONG
+                    ).show()
                 }
             }
         }
