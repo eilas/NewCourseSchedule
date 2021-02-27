@@ -6,10 +6,10 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/setFirstWeek"
-            android:title="@string/setFirstWeek" />
+            android:title="第一周" />
         <item
             android:id="@+id/setItemStrEndTime"
-            android:title="设置每格对应时间" />
+            android:title="课节数及上课时间" />
     </group>
     <group
         android:id="@+id/interaction_group"
@@ -23,6 +23,6 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/logout"
-            android:title="@string/logout" />
+            android:title="登出" />
     </group>
 </menu>

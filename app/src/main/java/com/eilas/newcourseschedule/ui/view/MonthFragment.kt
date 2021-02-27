@@ -19,6 +19,7 @@ import com.eilas.newcourseschedule.databinding.MonthFragmentBinding
 import java.time.DayOfWeek
 import java.util.*
 
+@Deprecated("不设计月视图了")
 class MonthFragment : Fragment() {
 
     private lateinit var monthFragmentBinding: MonthFragmentBinding
@@ -64,8 +65,6 @@ class MonthFragment : Fragment() {
 
 //            通过minDate和maxDate固定当前周————共七天
             minDate = Calendar.getInstance().apply {
-                Log.i("date", this.time.toString())
-                Log.i("time", this.weekYear.toString() + " " + get(Calendar.WEEK_OF_YEAR))
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     setWeekDate(weekYear, get(Calendar.WEEK_OF_YEAR), DayOfWeek.MONDAY.value)
                 }
