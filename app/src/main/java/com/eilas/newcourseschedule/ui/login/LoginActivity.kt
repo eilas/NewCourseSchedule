@@ -82,15 +82,15 @@ class LoginActivity : AppCompatActivity() {
 
 //                    无用户
                     5 -> {
-                        alertLoginRegisterBinding.root.parent?.apply {
-                            this as ViewGroup
-                            removeAllViews()
-                        }
 //                        弹框
                         AlertDialog.Builder(this@LoginActivity)
                             .setTitle("用户不存在")
                             .setMessage("注册？")
-                            .setView(alertLoginRegisterBinding.root)
+                            .setView(alertLoginRegisterBinding.root.apply {
+                                parent?.apply {
+                                    (this as ViewGroup).removeAllViews()
+                                }
+                            })
                             .setPositiveButton(
                                 "是",
                                 DialogInterface.OnClickListener { dialog, which ->
