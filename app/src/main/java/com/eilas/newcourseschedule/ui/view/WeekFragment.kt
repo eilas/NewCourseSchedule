@@ -23,7 +23,6 @@ import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
 import java.util.*
-import kotlin.collections.ArrayList
 
 class WeekFragment : Fragment() {
 
@@ -108,12 +107,10 @@ class WeekFragment : Fragment() {
 
             }
 
-            // TODO: 2021/2/25 第一列加不了事件，为啥呢 
             addEventClickListener = object : WeekView.AddEventClickListener {
                 override fun onAddEventClicked(startTime: Calendar, endTime: Calendar) {
                     alertAddCourseBinding.root.parent?.apply {
-                        this as ViewGroup
-                        removeAllViews()
+                        (this as ViewGroup).removeAllViews()
                     }
 //                    添加课程
                     AlertDialog.Builder(activity!!)
@@ -122,23 +119,26 @@ class WeekFragment : Fragment() {
                         .setPositiveButton(
                             "是",
                             DialogInterface.OnClickListener { dialog, which ->
-                                saveCourse((context as CourseScheduleActivity).user, CourseInfo(
-                                    courseName = alertAddCourseBinding.courseName.text.toString(),
-                                    // TODO: 2021/2/16 两个时间有问题
-                                    courseStrTime1 = Date(),
-//                                        inflate.findViewById<EditText>(R.id.lastTime).text.toString(),
-                                    courseEndTime1 = Date(),
-                                    lastWeek = alertAddCourseBinding.lastWeek.text.toString()
-                                        .toInt(),
-                                    info = alertAddCourseBinding.courseInfo.text.toString(),
-                                    courseItemIndexList = ArrayList<CourseItemIndex>().apply {
-                                        for (i in 0 until alertAddCourseBinding.lastTime.text.toString()
-                                            .toInt())
-//                                                gridView一列7个，故加入同一列的循环个courseItem
-//                                            add(courseItemList[position + i * 7])
-                                            add(courseItemList[0])
-                                    }
-                                ))
+                                val courseScheduleActivity = context as CourseScheduleActivity
+                                val itemStrEndTime = courseScheduleActivity.itemStrEndTime
+                                val strTime =
+                                    alertAddCourseBinding.strTime.text.toString().toInt() - 1
+                                val endTIme =
+                                    strTime + alertAddCourseBinding.lastTime.text.toString()
+                                        .toInt() - 2
+
+                                saveCourse(
+                                    courseScheduleActivity.user, CourseInfo(
+                                        courseName = alertAddCourseBinding.courseName.text.toString(),
+                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.time,
+                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.time,
+                                        strWeek = alertAddCourseBinding.strWeek.text.toString()
+                                            .toInt(),
+                                        lastWeek = alertAddCourseBinding.lastWeek.text.toString()
+                                            .toInt(),
+                                        info = alertAddCourseBinding.courseInfo.text.toString()
+                                    )
+                                )
                             }
                         )
                         .setNegativeButton("否", null)

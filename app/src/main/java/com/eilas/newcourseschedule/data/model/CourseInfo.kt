@@ -9,7 +9,8 @@ data class CourseInfo(
     val courseEndTime1: Date,
     val courseStrTime2: Date? = null,
     val courseEndTime2: Date? = null,
-    val lastWeek: Int = 0,
+    val strWeek: Int,
+    val lastWeek: Int,
     val info: String = "",
-    val courseItemIndexList: ArrayList<CourseItemIndex>
+//    val courseItemIndexList: ArrayList<CourseItemIndex>
 )

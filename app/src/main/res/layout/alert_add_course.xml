@@ -21,10 +21,32 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/strTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="开始时间(节)" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/lastTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="时长(节)" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/strWeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="开始周" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout

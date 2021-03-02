@@ -44,12 +44,6 @@ class CourseScheduleActivity : AppCompatActivity() {
 
         user = intent.extras?.getParcelable<LoggedInUser>("user")!!
 
-        val loadFirstWeek = loadFirstWeek(this)
-        if (loadFirstWeek == null)
-            Toast.makeText(this, "请设置第一周！", Toast.LENGTH_LONG).show()
-        else
-            firstWeek = loadFirstWeek
-
         val loadItemStrEndTime = loadItemStrEndTime(this)
         if (loadItemStrEndTime.isEmpty())
             Toast.makeText(this, "请设置课节数及上课时间！", Toast.LENGTH_LONG).show()
@@ -89,7 +83,7 @@ class CourseScheduleActivity : AppCompatActivity() {
         return true
     }
 
-    fun initView() {
+    private fun initView() {
         val courseItemList = initData()
 
 //        顶栏
@@ -104,101 +98,14 @@ class CourseScheduleActivity : AppCompatActivity() {
             this as WeekFragment
             this.initView(courseItemList)
         }
-/*
-        supportFragmentManager.findFragmentById(R.id.monthFragment).apply {
-            this as MonthFragment
-            this.initView(courseItemList)
-
-        }
-*/
 
 //        导航栏
         activityCourseScheduleBinding.navView.setNavigationItemSelectedListener {
             when (it.itemId) {
 //                设置第一周
-                R.id.setFirstWeek -> {
-                    var alertDialog: AlertDialog? = null
-                    alertDialog = AlertDialog.Builder(this).setTitle("设置第一周")
-                        .setView(CalendarView(this).apply {
-                            firstDayOfWeek = Calendar.MONDAY
-                            setOnDateChangeListener { view, year, month, dayOfMonth ->
-                                saveFirstWeek(
-                                    this@CourseScheduleActivity,
-                                    Calendar.getInstance().apply {
-                                        set(year, month, dayOfMonth)
-                                    })
-                                alertDialog?.dismiss()
-                            }
-                        }).show()
-                }
+                R.id.setFirstWeek -> setFirstWeek()
 //                设置课节数及上课时间
-                R.id.setItemStrEndTime -> {
-                    AlertDialog.Builder(this).setTitle("设置课节数及上课时间")
-                        .setView(alertCourseCountDayBinding.root.apply {
-                            parent?.apply {
-                                (this as ViewGroup).removeAllViews()
-                            }
-                        })
-                        .setPositiveButton("是", DialogInterface.OnClickListener { dialog, which ->
-                            val count =
-                                alertCourseCountDayBinding.courseCountDay.text.toString().toInt()
-                            val calendarMap = HashMap<String, Calendar>()
-
-                            fun showAlertDialog(i: Int, total: Int) {
-                                if (i < total)
-                                    AlertDialog.Builder(this).setTitle("第${i + 1}节，共${total}节")
-                                        .setView(alertCourseTimePickerBinding.let {
-                                            it.strTimePicker.setIs24HourView(true)
-                                            it.endTimePicker.setIs24HourView(true)
-                                            it.root.apply {
-                                                parent?.apply {
-                                                    (this as ViewGroup).removeAllViews()
-                                                }
-                                            }
-                                        })
-                                        .setPositiveButton(
-                                            "下一节",
-                                            DialogInterface.OnClickListener { dialog, which ->
-                                                calendarMap.apply {
-                                                    put(
-                                                        "strTime$i",
-                                                        Calendar.getInstance().apply {
-                                                            set(
-                                                                Calendar.HOUR_OF_DAY,
-                                                                alertCourseTimePickerBinding.strTimePicker.hour
-                                                            )
-                                                            set(
-                                                                Calendar.MINUTE,
-                                                                alertCourseTimePickerBinding.strTimePicker.minute
-                                                            )
-                                                        })
-                                                    put(
-                                                        "endTime$i",
-                                                        Calendar.getInstance().apply {
-                                                            set(
-                                                                Calendar.HOUR_OF_DAY,
-                                                                alertCourseTimePickerBinding.endTimePicker.hour
-                                                            )
-                                                            set(
-                                                                Calendar.MINUTE,
-                                                                alertCourseTimePickerBinding.endTimePicker.minute
-                                                            )
-                                                        })
-                                                }
-
-                                                showAlertDialog(i + 1, total)
-                                            })
-                                        .show()
-                                else
-//                                    saveItemStrEndTime在showAlertDialog里执行能保证所有AlertDialog显示完后再执行
-                                    saveItemStrEndTime(this, calendarMap)
-                            }
-
-                            var i = 0
-                            showAlertDialog(i, count)
-
-                        }).show()
-                }
+                R.id.setItemStrEndTime -> setItemStrEndTime()
 //                登出
                 R.id.logout -> logout(this)
             }
@@ -206,7 +113,97 @@ class CourseScheduleActivity : AppCompatActivity() {
         }
     }
 
-    fun initData(): ArrayList<CourseItemIndex> {
-        return getAllCourse(user)
+    private fun initData(): ArrayList<CourseItemIndex> {
+        lateinit var allCourse: ArrayList<CourseItemIndex>
+        kotlin.runCatching {
+//            init firstWeek
+            firstWeek = loadFirstWeek(this)!!
+            allCourse = getAllCourse(user, firstWeek)
+        }.onFailure {
+            Toast.makeText(this, "请设置第一周！", Toast.LENGTH_LONG).show()
+            setFirstWeek()
+            firstWeek = loadFirstWeek(this)!!
+            return initData()
+        }
+        return allCourse
+    }
+
+    private fun setFirstWeek() {
+        var alertDialog: AlertDialog? = null
+        alertDialog = AlertDialog.Builder(this).setTitle("设置第一周")
+            .setView(CalendarView(this).apply {
+                firstDayOfWeek = Calendar.MONDAY
+                setOnDateChangeListener { view, year, month, dayOfMonth ->
+                    saveFirstWeek(this@CourseScheduleActivity,
+                        Calendar.getInstance().apply {
+                            set(year, month, dayOfMonth)
+                        })
+                    alertDialog?.dismiss()
+                }
+            }).show()
+    }
+
+    private fun setItemStrEndTime() {
+        AlertDialog.Builder(this).setTitle("设置课节数及上课时间")
+            .setView(alertCourseCountDayBinding.root.apply {
+                parent?.apply {
+                    (this as ViewGroup).removeAllViews()
+                }
+            })
+            .setPositiveButton("是", DialogInterface.OnClickListener { dialog, which ->
+                val count =
+                    alertCourseCountDayBinding.courseCountDay.text.toString().toInt()
+                val calendarMap = HashMap<String, Calendar>()
+
+                fun showAlertDialog(i: Int, total: Int) {
+                    if (i < total)
+                        AlertDialog.Builder(this).setTitle("第${i + 1}节，共${total}节")
+                            .setView(alertCourseTimePickerBinding.let {
+                                it.strTimePicker.setIs24HourView(true)
+                                it.endTimePicker.setIs24HourView(true)
+                                it.root.apply {
+                                    parent?.apply {
+                                        (this as ViewGroup).removeAllViews()
+                                    }
+                                }
+                            })
+                            .setPositiveButton(
+                                "下一节",
+                                DialogInterface.OnClickListener { dialog, which ->
+                                    calendarMap.apply {
+                                        put("strTime$i", Calendar.getInstance().apply {
+                                            set(
+                                                Calendar.HOUR_OF_DAY,
+                                                alertCourseTimePickerBinding.strTimePicker.hour
+                                            )
+                                            set(
+                                                Calendar.MINUTE,
+                                                alertCourseTimePickerBinding.strTimePicker.minute
+                                            )
+                                        })
+                                        put("endTime$i", Calendar.getInstance().apply {
+                                            set(
+                                                Calendar.HOUR_OF_DAY,
+                                                alertCourseTimePickerBinding.endTimePicker.hour
+                                            )
+                                            set(
+                                                Calendar.MINUTE,
+                                                alertCourseTimePickerBinding.endTimePicker.minute
+                                            )
+                                        })
+                                    }
+
+                                    showAlertDialog(i + 1, total)
+                                })
+                            .show()
+                    else
+//                        saveItemStrEndTime在showAlertDialog里执行能保证所有AlertDialog显示完后再执行
+                        saveItemStrEndTime(this, calendarMap)
+                }
+
+                var i = 0
+                showAlertDialog(i, count)
+
+            }).show()
     }
 }

@@ -13,9 +13,12 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 //查询一周的所有课程,需要单双周信息->"第n周"
-fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
+fun getAllCourse(user: LoggedInUser, firstWeek: Calendar): ArrayList<CourseItemIndex> {
     val courseList = ArrayList<CourseItemIndex>()
     // TODO: 2021/2/10 获取当前周
     Thread {
@@ -25,7 +28,8 @@ fun getAllCourse(user: LoggedInUser): ArrayList<CourseItemIndex> {
             Request.Builder().post(
                 Gson().toJson(user)
                     .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/course?search=true&all=true&week=1").build()
+            ).url(httpHelper.url + "/course?search=true&all=true&week=${getThisWeek(firstWeek)}")
+                .build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 

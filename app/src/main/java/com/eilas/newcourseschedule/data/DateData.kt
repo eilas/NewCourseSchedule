@@ -7,6 +7,7 @@ import kotlin.collections.HashMap
 
 fun saveFirstWeek(context: Context, calendar: Calendar) {
     Thread {
+        calendar.firstDayOfWeek = Calendar.MONDAY
         context.getSharedPreferences("date", Context.MODE_PRIVATE).edit()
             .putInt("year", calendar.get(Calendar.YEAR))
             .putInt("month", calendar.get(Calendar.MONTH))
@@ -22,6 +23,7 @@ fun loadFirstWeek(context: Context): Calendar? {
 
         if (year != -1 && month != -1 && weekOfMonth != -1)
             Calendar.getInstance().apply {
+                firstDayOfWeek = Calendar.MONDAY
                 set(Calendar.YEAR, year)
                 set(Calendar.MONTH, month)
                 set(Calendar.WEEK_OF_MONTH, weekOfMonth)
@@ -61,5 +63,16 @@ fun loadItemStrEndTime(context: Context): Map<String, Calendar> {
                     break
             }
         }
+    }
+}
+
+//以第一周为准获取当前周数
+fun getThisWeek(firstWeek: Calendar): Int {
+    firstWeek.firstDayOfWeek = Calendar.MONDAY
+    return Calendar.getInstance().let {
+        it.firstDayOfWeek = Calendar.MONDAY
+//        Log.i("it.WEEK_OF_YEAR", it.get(Calendar.WEEK_OF_YEAR).toString())
+//        Log.i("firstWeek.WEEK_OF_YEAR", firstWeek.get(Calendar.WEEK_OF_YEAR).toString())
+        it.get(Calendar.WEEK_OF_YEAR) - firstWeek.get(Calendar.WEEK_OF_YEAR) + 1
     }
 }
