@@ -13,6 +13,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -20,7 +21,7 @@ import kotlin.collections.HashMap
 //查询一周的所有课程,需要单双周信息->"第n周"
 fun getAllCourse(user: LoggedInUser, firstWeek: Calendar): ArrayList<CourseItemIndex> {
     val courseList = ArrayList<CourseItemIndex>()
-    // TODO: 2021/2/10 获取当前周
+
     Thread {
         val httpHelper = HttpHelper.obtain()
 
@@ -71,9 +72,25 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo) {
                 gson.toJson(HashMap<String, Any>().apply {
                     put("user", user)
                     put("course", course)
-                }).apply { Log.i("user + course", this) }
-                    .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/course").build()
+                }).replace(Regex("(\"course)(Str|End)(Time)([0-9])(\":\")(.*?)(\",+)"), {
+//                    将json字符串中的时间转换成yyyy-MM-dd HH:mm:ss格式
+                    it.groupValues[1] + it.groupValues[2] + it.groupValues[3] + it.groupValues[4] +
+                            it.groupValues[5] + SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+                        if (it.groupValues[2] == "Str")
+                            if (it.groupValues[4] == "1")
+                                course.courseStrTime1
+                            else
+                                course.courseStrTime2
+                        else
+                            if (it.groupValues[4] == "1")
+                                course.courseEndTime1
+                            else
+                                course.courseEndTime2
+                    ) + it.groupValues[7]
+                }).apply {
+                    Log.i("user+course", this)
+                }.toRequestBody("application/json".toMediaTypeOrNull())
+            ).url(httpHelper.url + "/course?search=false").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 
@@ -81,9 +98,12 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo) {
 
             override fun onResponse(call: Call, response: Response) {
                 // TODO: 2021/2/9 考虑单双周
+                Log.i("saveCourse response", response.body?.string())
+/*
                 JsonParser().parse(response.body?.string()).asJsonObject.let {
 
                 }
+*/
             }
 
         })

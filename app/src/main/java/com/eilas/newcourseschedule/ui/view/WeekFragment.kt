@@ -125,18 +125,31 @@ class WeekFragment : Fragment() {
                                     alertAddCourseBinding.strTime.text.toString().toInt() - 1
                                 val endTIme =
                                     strTime + alertAddCourseBinding.lastTime.text.toString()
-                                        .toInt() - 2
+                                        .toInt() - 1
 
                                 saveCourse(
                                     courseScheduleActivity.user, CourseInfo(
                                         courseName = alertAddCourseBinding.courseName.text.toString(),
-                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.time,
-                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.time,
+                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.apply {
+                                            set(
+                                                startTime.get(Calendar.YEAR),
+                                                startTime.get(Calendar.MONTH),
+                                                startTime.get(Calendar.DATE)
+                                            )
+                                        }.time,
+                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.apply {
+                                            set(
+                                                startTime.get(Calendar.YEAR),
+                                                startTime.get(Calendar.MONTH),
+                                                startTime.get(Calendar.DATE)
+                                            )
+                                        }.time,
                                         strWeek = alertAddCourseBinding.strWeek.text.toString()
                                             .toInt(),
                                         lastWeek = alertAddCourseBinding.lastWeek.text.toString()
                                             .toInt(),
-                                        info = alertAddCourseBinding.courseInfo.text.toString()
+                                        info = alertAddCourseBinding.courseInfo.text.toString(),
+                                        location = alertAddCourseBinding.location.text.toString()
                                     )
                                 )
                             }

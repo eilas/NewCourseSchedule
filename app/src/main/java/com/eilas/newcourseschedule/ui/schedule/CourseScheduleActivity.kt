@@ -137,6 +137,7 @@ class CourseScheduleActivity : AppCompatActivity() {
                     saveFirstWeek(this@CourseScheduleActivity,
                         Calendar.getInstance().apply {
                             set(year, month, dayOfMonth)
+                            firstWeek = this
                         })
                     alertDialog?.dismiss()
                 }
@@ -196,9 +197,11 @@ class CourseScheduleActivity : AppCompatActivity() {
                                     showAlertDialog(i + 1, total)
                                 })
                             .show()
-                    else
+                    else {
 //                        saveItemStrEndTime在showAlertDialog里执行能保证所有AlertDialog显示完后再执行
                         saveItemStrEndTime(this, calendarMap)
+                        itemStrEndTime = calendarMap
+                    }
                 }
 
                 var i = 0
