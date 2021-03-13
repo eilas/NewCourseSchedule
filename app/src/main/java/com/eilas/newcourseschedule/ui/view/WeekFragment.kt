@@ -15,11 +15,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.alamkanak.weekview.*
+import com.eilas.newcourseschedule.data.dropCourse
 import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.collections.ArrayList
@@ -29,16 +31,20 @@ class WeekFragment : Fragment() {
     private lateinit var weekFragmentBinding: WeekFragmentBinding
     private lateinit var alertAddCourseBinding: AlertAddCourseBinding
     private lateinit var courseList: ArrayList<CourseInfo>
-    private val handler:Handler = Handler(WeakReference(Handler.Callback {
+    private val handler: Handler = Handler(WeakReference(Handler.Callback {
         when (it.what) {
             1 -> {
                 courseList = it.obj as ArrayList<CourseInfo>
 //                重新展示全部课程
                 weekFragmentBinding.weekView.notifyDataSetChanged()
             }
-            2->{
+            2 -> {
 //                重新获取全部课程数据
                 refreshData()
+            }
+
+            99->{
+
             }
         }
         true
@@ -116,9 +122,33 @@ class WeekFragment : Fragment() {
                 }
             }
 
+            eventLongPressListener = object : WeekView.EventLongPressListener {
+                override fun onEventLongPress(event: WeekViewEvent, eventRect: RectF) {
+//                    长按删除
+                    var courseInfo: CourseInfo? = null
+                    var revoke: Boolean = false
+                    if (courseList.removeIf { course ->
+                            course.id.equals(event.id).also { if (it) courseInfo = course }
+                        }) {
+                        notifyDataSetChanged()
+                        Snackbar.make(this@apply, "课程已删除", Snackbar.LENGTH_LONG).setAction("撤销") {
+                            courseList.add(courseInfo!!)
+                            revoke = true
+                            notifyDataSetChanged()
+                        }.addCallback(object : Snackbar.Callback() {
+                            override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                                if (!revoke)
+                                    dropCourse((context as CourseScheduleActivity).user, courseInfo!!, this@WeekFragment.handler)
+                            }
+                        }).show()
+                    }
+                }
+
+            }
+
             dropListener = object : WeekView.DropListener {
                 override fun onDrop(view: View, date: Calendar) {
-
+                    Toast.makeText(this@WeekFragment.context, "drop", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -256,7 +286,7 @@ class WeekFragment : Fragment() {
                 1
     }
 
-    private fun refreshData(){
+    private fun refreshData() {
         (this.context as CourseScheduleActivity).refreshData(handler)
     }
 }

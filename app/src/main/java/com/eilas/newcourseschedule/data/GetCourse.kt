@@ -18,7 +18,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 //查询一周的所有课程,需要单双周信息->"第n周"
 fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
@@ -30,7 +29,7 @@ fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
             Request.Builder().post(
                 Gson().toJson(user)
                     .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/course?search=true&all=true&week=${getThisWeek(firstWeek)}")
+            ).url(httpHelper.url + "/course?action=search&all=true&week=${getThisWeek(firstWeek)}")
                 .build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -82,13 +81,9 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
 
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(
-                gson.toJson(HashMap<String, Any>().apply {
-                    put("user", user)
-                    put("course", course)
-                }).apply {
-                    Log.i("user+course", this)
-                }.toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/course?search=false").build()
+                gson.toJson(mapOf("user" to user, "course" to course))
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+            ).url(httpHelper.url + "/course?action=save").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 
@@ -108,5 +103,29 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
         })
 
         httpHelper.recycle()
+    }.start()
+}
+
+fun dropCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
+    Thread {
+        val httpHelper = HttpHelper.obtain()
+
+        httpHelper.okHttpClient.newCall(
+            Request.Builder().post(
+                Gson().toJson(mapOf("user" to user, "course" to course))
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+            ).url("${httpHelper.url}/course?action=drop").build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                Log.i("dropCourse response", response.body?.string())
+
+                handler.sendMessage(Message.obtain().apply { what = 99 })
+            }
+
+        })
     }.start()
 }
