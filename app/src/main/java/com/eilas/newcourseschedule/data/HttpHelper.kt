@@ -14,7 +14,7 @@ class HttpHelper {
         pool.release(this)
     }
 
-    val url: String = "http://192.168.0.107:8080"
+    val url: String = "http://192.168.1.102:8080/"
     val okHttpClient: OkHttpClient = OkHttpClient()
 
     private constructor()

@@ -13,7 +13,8 @@ data class CourseInfo(
     val strWeek: Int,
     val lastWeek: Int,
     val info: String = "",
-    val location:String
+    val location: String,
+    val id: String = ""
 ) {
 /*
     override fun toString(): String {

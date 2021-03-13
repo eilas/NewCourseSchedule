@@ -1,5 +1,6 @@
 package com.eilas.newcourseschedule.data
 
+import android.os.Handler
 import android.os.Message
 import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
@@ -14,7 +15,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-fun register(user: LoggedInUser) {
+fun register(user: LoggedInUser,handler: Handler) {
     Thread {
         val gson = Gson()
         val httpHelper = HttpHelper.obtain()
@@ -33,7 +34,7 @@ fun register(user: LoggedInUser) {
                 JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
                     when (it) {
                         "OK" -> {
-                            LoginActivity.handle?.sendMessage(Message.obtain().let {
+                            handler.sendMessage(Message.obtain().let {
                                 it.what = 3
                                 it
                             })

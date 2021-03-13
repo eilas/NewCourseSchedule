@@ -2,6 +2,7 @@ package com.eilas.newcourseschedule.ui.schedule
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -13,14 +14,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.*
-import com.eilas.newcourseschedule.data.model.CourseItemIndex
+import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.databinding.ActivityCourseScheduleBinding
 import com.eilas.newcourseschedule.databinding.AlertCalendarBinding
 import com.eilas.newcourseschedule.databinding.AlertCourseCountDayBinding
 import com.eilas.newcourseschedule.databinding.AlertCourseTimePickerBinding
 import com.eilas.newcourseschedule.ui.view.WeekFragment
+import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 // TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交
@@ -33,6 +36,18 @@ class CourseScheduleActivity : AppCompatActivity() {
     private lateinit var alertCalendarBinding: AlertCalendarBinding
     private lateinit var alertCourseCountDayBinding: AlertCourseCountDayBinding
     private lateinit var alertCourseTimePickerBinding: AlertCourseTimePickerBinding
+
+    private val handler = Handler(WeakReference(Handler.Callback {
+        when (it.what) {
+            1 -> {
+//                init WeekFragment
+                supportFragmentManager.findFragmentById(R.id.weekFragment).apply {
+                    (this as WeekFragment).initView(it.obj as ArrayList<CourseInfo>, firstWeek)
+                }
+            }
+        }
+        true
+    }).get())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,19 +99,13 @@ class CourseScheduleActivity : AppCompatActivity() {
     }
 
     private fun initView() {
-        val courseItemList = initData()
+        initData()
 
 //        顶栏
         setSupportActionBar(activityCourseScheduleBinding.toolbar)
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(android.R.drawable.ic_menu_sort_by_size)
-        }
-
-//        主界面
-        supportFragmentManager.findFragmentById(R.id.weekFragment).apply {
-            this as WeekFragment
-            this.initView(courseItemList)
         }
 
 //        导航栏
@@ -113,19 +122,21 @@ class CourseScheduleActivity : AppCompatActivity() {
         }
     }
 
-    private fun initData(): ArrayList<CourseItemIndex> {
-        lateinit var allCourse: ArrayList<CourseItemIndex>
+    private fun initData() {
         kotlin.runCatching {
 //            init firstWeek
             firstWeek = loadFirstWeek(this)!!
-            allCourse = getAllCourse(user, firstWeek)
+            refreshData(handler)
         }.onFailure {
             Toast.makeText(this, "请设置第一周！", Toast.LENGTH_LONG).show()
             setFirstWeek()
             firstWeek = loadFirstWeek(this)!!
             return initData()
         }
-        return allCourse
+    }
+
+    fun refreshData(handler: Handler) {
+        getAllCourse(user, firstWeek, handler)
     }
 
     private fun setFirstWeek() {

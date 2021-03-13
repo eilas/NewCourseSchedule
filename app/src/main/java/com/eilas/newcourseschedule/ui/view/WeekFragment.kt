@@ -1,9 +1,11 @@
 package com.eilas.newcourseschedule.ui.view
 
 import android.content.DialogInterface
+import android.graphics.Color
 import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -12,22 +14,35 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import com.alamkanak.weekview.DateTimeInterpreter
-import com.alamkanak.weekview.WeekView
-import com.alamkanak.weekview.WeekViewEvent
-import com.alamkanak.weekview.WeekViewUtil
+import com.alamkanak.weekview.*
 import com.eilas.newcourseschedule.data.model.CourseInfo
-import com.eilas.newcourseschedule.data.model.CourseItemIndex
 import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.collections.ArrayList
 
 class WeekFragment : Fragment() {
 
     private lateinit var weekFragmentBinding: WeekFragmentBinding
     private lateinit var alertAddCourseBinding: AlertAddCourseBinding
+    private lateinit var courseList: ArrayList<CourseInfo>
+    private val handler:Handler = Handler(WeakReference(Handler.Callback {
+        when (it.what) {
+            1 -> {
+                courseList = it.obj as ArrayList<CourseInfo>
+//                重新展示全部课程
+                weekFragmentBinding.weekView.notifyDataSetChanged()
+            }
+            2->{
+//                重新获取全部课程数据
+                refreshData()
+            }
+        }
+        true
+    }).get())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,9 +55,11 @@ class WeekFragment : Fragment() {
         return weekFragmentBinding.root
     }
 
-    fun initView(courseItemList: ArrayList<CourseItemIndex>) {
-
+    fun initView(courseItemList: ArrayList<CourseInfo>, firstWeek: Calendar) {
+        courseList = courseItemList
         weekFragmentBinding.weekView.apply {
+//            由于多线程（可能）原因，未有课程数据时便加载完成，需要重新加载
+            notifyDataSetChanged()
 //            表项样式
             numberOfVisibleDays = 7
             columnGap =
@@ -75,13 +92,10 @@ class WeekFragment : Fragment() {
             minDate = Calendar.getInstance().apply {
                 firstDayOfWeek = Calendar.MONDAY
                 setWeekDate(weekYear, get(Calendar.WEEK_OF_YEAR), Calendar.MONDAY)
-                Log.i("time", time.toString())
             }
             maxDate = Calendar.getInstance().apply {
                 firstDayOfWeek = Calendar.MONDAY
                 setWeekDate(weekYear, get(Calendar.WEEK_OF_YEAR), Calendar.SUNDAY)
-
-                Log.i("time", time.toString())
             }
 
 //            设置开始结束时间
@@ -94,17 +108,18 @@ class WeekFragment : Fragment() {
                 }
 
             }
+
             eventClickListener = object : WeekView.EventClickListener {
                 override fun onEventClick(event: WeekViewEvent, eventRect: RectF) {
-
+                    Toast.makeText(this@WeekFragment.context, "event clicked", Toast.LENGTH_SHORT)
+                        .show()
                 }
-
             }
+
             dropListener = object : WeekView.DropListener {
                 override fun onDrop(view: View, date: Calendar) {
 
                 }
-
             }
 
             addEventClickListener = object : WeekView.AddEventClickListener {
@@ -126,40 +141,53 @@ class WeekFragment : Fragment() {
                                 val endTIme =
                                     strTime + alertAddCourseBinding.lastTime.text.toString()
                                         .toInt() - 1
-
+                                val strWeek = alertAddCourseBinding.strWeek.text.toString()
+                                    .toInt()
+                                val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
+                                    .toInt()
                                 saveCourse(
                                     courseScheduleActivity.user, CourseInfo(
                                         courseName = alertAddCourseBinding.courseName.text.toString(),
-                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.apply {
-                                            set(
-                                                startTime.get(Calendar.YEAR),
-                                                startTime.get(Calendar.MONTH),
-                                                startTime.get(Calendar.DATE)
-                                            )
+//                                        课程时间设置为课程第一周的具体时间
+                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.let {
+//                                            将itemStrEndTime的时分与 通过firstWeek和strWeek获取的课程第一周 和startTime的周几拼接，courseEndTime1下同
+                                            (firstWeek.clone() as Calendar).apply {
+                                                add(Calendar.DATE, (strWeek - 1) * 7)//第几周
+                                                set(
+                                                    Calendar.DAY_OF_WEEK,
+                                                    startTime.get(Calendar.DAY_OF_WEEK)
+                                                )//周几
+                                                set(
+                                                    Calendar.HOUR_OF_DAY,
+                                                    it[Calendar.HOUR_OF_DAY]
+                                                )//时
+                                                set(Calendar.MINUTE, it[Calendar.MINUTE])//分
+                                            }
                                         }.time,
-                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.apply {
-                                            set(
-                                                startTime.get(Calendar.YEAR),
-                                                startTime.get(Calendar.MONTH),
-                                                startTime.get(Calendar.DATE)
-                                            )
+                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.let {
+                                            (firstWeek.clone() as Calendar).apply {
+                                                add(Calendar.DATE, (strWeek - 1) * 7)
+                                                set(
+                                                    Calendar.DAY_OF_WEEK,
+                                                    startTime.get(Calendar.DAY_OF_WEEK)
+                                                )
+                                                set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
+                                                set(Calendar.MINUTE, it[Calendar.MINUTE])
+                                            }
                                         }.time,
-                                        strWeek = alertAddCourseBinding.strWeek.text.toString()
-                                            .toInt(),
-                                        lastWeek = alertAddCourseBinding.lastWeek.text.toString()
-                                            .toInt(),
+                                        strWeek = strWeek,
+                                        lastWeek = lastWeek,
                                         info = alertAddCourseBinding.courseInfo.text.toString(),
                                         location = alertAddCourseBinding.location.text.toString()
-                                    )
+                                    ), this@WeekFragment.handler
                                 )
                             }
                         )
                         .setNegativeButton("否", null)
                         .show()
-
                 }
-
             }
+
             scrollListener = object : WeekView.ScrollListener {
                 override fun onFirstVisibleDayChanged(
                     newFirstVisibleDay: Calendar,
@@ -169,10 +197,55 @@ class WeekFragment : Fragment() {
                 }
 
             }
+
+            monthChangeListener = object : MonthLoader.MonthChangeListener {
+                /*
+                * This method is called three times: once to load the previous month,
+                *  once to load the next month and once to load the current month.
+                * That's why you can have three times the same event at the same place if you mess up with the configuration.
+                * */
+                override fun onMonthChange(
+                    newYear: Int,
+                    newMonth: Int
+                ): MutableList<out WeekViewEvent>? {
+//                    通过判断时间在加载上月和下月时返回null
+                    val today = Calendar.getInstance().apply {
+                        set(Calendar.YEAR, newYear)
+                        set(Calendar.MONTH, newMonth - 1)
+                    }
+                    if (today.time.before(minDate?.time) || today.time.after(maxDate?.time))
+                        return null
+
+                    return ArrayList<WeekViewEvent>().apply {
+                        courseList.forEach {
+                            add(
+                                WeekViewEvent(it.id,
+                                    it.courseName,
+                                    it.location,
+                                    Calendar.getInstance().apply { time = it.courseStrTime1 },
+                                    Calendar.getInstance()
+                                        .apply { time = it.courseEndTime1 }).apply {
+                                    color = Color.CYAN
+                                }
+                            )
+                            if (it.courseStrTime2 != null && it.courseEndTime2 != null) {
+                                add(
+                                    WeekViewEvent(it.id,
+                                        it.courseName,
+                                        it.location,
+                                        Calendar.getInstance().apply { time = it.courseStrTime2 },
+                                        Calendar.getInstance()
+                                            .apply { time = it.courseEndTime2 }).apply {
+                                        color = Color.CYAN
+                                    }
+                                )
+                            }
+                        }
+                        Log.i("course item count", this.size.toString())
+                    }
+                }
+            }
         }
-
-
-//        weekFragmentBinding.gridView.adapter = ScheduleAdapter(activity!!, courseItemList)
     }
 
     fun changeViewTo(viewName: String) {
@@ -181,5 +254,9 @@ class WeekFragment : Fragment() {
                 7
             else
                 1
+    }
+
+    private fun refreshData(){
+        (this.context as CourseScheduleActivity).refreshData(handler)
     }
 }

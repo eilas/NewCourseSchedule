@@ -41,7 +41,7 @@ fun deleteUser(context: Context): Boolean {
 fun autoLogin(context: Context, view: View) {
     loadUser(context)?.apply {
         Snackbar.make(view, "自动登录中...", Snackbar.LENGTH_INDEFINITE).show()
-        login(this)
-        (context as LoginActivity).loggedInUser = this
+        login(this, (context as LoginActivity).handler)
+        context.loggedInUser = this
     }
 }

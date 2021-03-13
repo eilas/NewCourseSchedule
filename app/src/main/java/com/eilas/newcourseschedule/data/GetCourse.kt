@@ -1,10 +1,12 @@
 package com.eilas.newcourseschedule.data
 
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import com.eilas.newcourseschedule.data.model.CourseInfo
-import com.eilas.newcourseschedule.data.model.CourseItemIndex
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import okhttp3.Call
 import okhttp3.Callback
@@ -19,10 +21,9 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 //查询一周的所有课程,需要单双周信息->"第n周"
-fun getAllCourse(user: LoggedInUser, firstWeek: Calendar): ArrayList<CourseItemIndex> {
-    val courseList = ArrayList<CourseItemIndex>()
-
+fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
     Thread {
+        val courseList = ArrayList<CourseInfo>()
         val httpHelper = HttpHelper.obtain()
 
         httpHelper.okHttpClient.newCall(
@@ -38,23 +39,35 @@ fun getAllCourse(user: LoggedInUser, firstWeek: Calendar): ArrayList<CourseItemI
 
             override fun onResponse(call: Call, response: Response) {
                 // TODO: 2021/2/9 考虑单双周
-                Log.i("response", response.body?.string())
-/*
-                JsonParser().parse(response.body?.string()).asJsonObject.let {
-                    Log.i("response", response.body?.string())
+//                Log.i("response", response.body?.string())
+                val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                JsonParser().parse(response.body?.string()).asJsonArray.forEach {
+                    courseList.add(it.asJsonObject.let {
+                        CourseInfo(
+                            it["name"].asString,
+                            simpleDateFormat.parse(it["strTime1"].asString),
+                            simpleDateFormat.parse(it["endTime1"].asString),
+                            null,
+                            null,
+                            0,
+                            0,
+                            null.toString(),
+                            it["location"].asString,
+                            it["id"].asString
+                        )
+                    })
                 }
-*/
+
+                handler.sendMessage(Message.obtain().apply {
+                    what = 1
+                    this.obj = courseList
+                })
             }
 
         })
 
         httpHelper.recycle()
     }.start()
-    return courseList.apply {
-        for (time in 0 until 12)
-            for (day in 0 until 7)
-                add(CourseItemIndex(time, day, null))
-    }
 }
 
 //查看单个课程信息
@@ -62,9 +75,9 @@ fun getAllCourse(user: LoggedInUser, firstWeek: Calendar): ArrayList<CourseItemI
 
 }*/
 
-fun saveCourse(user: LoggedInUser, course: CourseInfo) {
+fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
     Thread {
-        val gson = Gson()
+        val gson = GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()
         val httpHelper = HttpHelper.obtain()
 
         httpHelper.okHttpClient.newCall(
@@ -72,21 +85,6 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo) {
                 gson.toJson(HashMap<String, Any>().apply {
                     put("user", user)
                     put("course", course)
-                }).replace(Regex("(\"course)(Str|End)(Time)([0-9])(\":\")(.*?)(\",+)"), {
-//                    将json字符串中的时间转换成yyyy-MM-dd HH:mm:ss格式
-                    it.groupValues[1] + it.groupValues[2] + it.groupValues[3] + it.groupValues[4] +
-                            it.groupValues[5] + SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-                        if (it.groupValues[2] == "Str")
-                            if (it.groupValues[4] == "1")
-                                course.courseStrTime1
-                            else
-                                course.courseStrTime2
-                        else
-                            if (it.groupValues[4] == "1")
-                                course.courseEndTime1
-                            else
-                                course.courseEndTime2
-                    ) + it.groupValues[7]
                 }).apply {
                     Log.i("user+course", this)
                 }.toRequestBody("application/json".toMediaTypeOrNull())
@@ -99,6 +97,7 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo) {
             override fun onResponse(call: Call, response: Response) {
                 // TODO: 2021/2/9 考虑单双周
                 Log.i("saveCourse response", response.body?.string())
+                handler.sendMessage(Message.obtain().apply { what = 2 })
 /*
                 JsonParser().parse(response.body?.string()).asJsonObject.let {
 

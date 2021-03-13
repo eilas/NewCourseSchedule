@@ -2,7 +2,9 @@ package com.eilas.newcourseschedule.data
 
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
 import android.os.Message
+import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.ui.login.LoginActivity
 import com.eilas.newcourseschedule.ui.login.deleteUser
@@ -16,7 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-fun login(user: LoggedInUser) {
+fun login(user: LoggedInUser,handler: Handler) {
     Thread {
         val gson = Gson()
         val httpHelper = HttpHelper.obtain()
@@ -28,14 +30,14 @@ fun login(user: LoggedInUser) {
             ).url(httpHelper.url + "/login").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                LoginActivity.handle?.sendMessage(Message.obtain().apply { what = 6 })
+                handler.sendMessage(Message.obtain().apply { what = 6 })
             }
 
             override fun onResponse(call: Call, response: Response) {
 //                区分登录情况
 //                Log.i("response", response.body?.string())
                 JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
-                    LoginActivity.handle?.sendMessage(Message.obtain().apply {
+                    handler.sendMessage(Message.obtain().apply {
                         when (it) {
                             "OK" -> what = 3
                             "pwdError" -> what = 4
