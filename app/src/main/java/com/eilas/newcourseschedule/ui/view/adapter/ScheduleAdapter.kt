@@ -12,6 +12,7 @@ import com.eilas.newcourseschedule.data.model.CourseItemIndex
 import com.google.gson.Gson
 
 
+@Deprecated("不用了")
 class ScheduleAdapter(val context: Context, var courseList: ArrayList<CourseItemIndex>) :
     BaseAdapter() {
     val gson = Gson()

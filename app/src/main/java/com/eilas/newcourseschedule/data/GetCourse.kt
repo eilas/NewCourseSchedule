@@ -127,5 +127,6 @@ fun dropCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
             }
 
         })
+        httpHelper.recycle()
     }.start()
 }

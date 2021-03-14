@@ -1,8 +1,6 @@
 package com.eilas.newcourseschedule
 
 import org.junit.Test
-import java.text.SimpleDateFormat
-import java.util.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -12,16 +10,14 @@ import java.util.*
 class ExampleUnitTest {
     @Test
     fun test() {
-        println(Calendar.getInstance().time.apply {
+        val list = listOf<Int>(0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 8)
+        val hashMap = HashMap<Int, Int>()
+        for (i in list.indices) {
+            if (i != 0 && list[i] == list[i - 1])
+                continue
+            hashMap.put(list[i],i)
+        }
+        println(hashMap)
 
-            println(
-                SimpleDateFormat("EEE-MMM-dd-HH:mm:ss-zzzzzzzz-yyyy").parse(
-                    "Mon Mar 01 21:31:22 GMT+08:00 2021".replace(
-                        " ",
-                        "-"
-                    )
-                )
-            )
-        })
     }
 }

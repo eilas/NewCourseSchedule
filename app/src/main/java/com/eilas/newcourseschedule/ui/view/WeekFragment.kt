@@ -1,7 +1,6 @@
 package com.eilas.newcourseschedule.ui.view
 
 import android.content.DialogInterface
-import android.graphics.Color
 import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
@@ -21,6 +20,7 @@ import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
 import java.util.*
@@ -31,6 +31,7 @@ class WeekFragment : Fragment() {
     private lateinit var weekFragmentBinding: WeekFragmentBinding
     private lateinit var alertAddCourseBinding: AlertAddCourseBinding
     private lateinit var courseList: ArrayList<CourseInfo>
+    val weekViewEventList: ArrayList<WeekViewEvent> = ArrayList()
     private val handler: Handler = Handler(WeakReference(Handler.Callback {
         when (it.what) {
             1 -> {
@@ -43,7 +44,7 @@ class WeekFragment : Fragment() {
                 refreshData()
             }
 
-            99->{
+            99 -> {
 
             }
         }
@@ -63,6 +64,11 @@ class WeekFragment : Fragment() {
 
     fun initView(courseItemList: ArrayList<CourseInfo>, firstWeek: Calendar) {
         courseList = courseItemList
+//        绑定颜色数据
+        val courseItemColorAdapter =
+            CourseItemColorAdapter(this@WeekFragment.context!!, weekViewEventList)
+        courseItemColorAdapter.bindColor()
+
         weekFragmentBinding.weekView.apply {
 //            由于多线程（可能）原因，未有课程数据时便加载完成，需要重新加载
             notifyDataSetChanged()
@@ -138,7 +144,11 @@ class WeekFragment : Fragment() {
                         }.addCallback(object : Snackbar.Callback() {
                             override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                                 if (!revoke)
-                                    dropCourse((context as CourseScheduleActivity).user, courseInfo!!, this@WeekFragment.handler)
+                                    dropCourse(
+                                        (context as CourseScheduleActivity).user,
+                                        courseInfo!!,
+                                        this@WeekFragment.handler
+                                    )
                             }
                         }).show()
                     }
@@ -238,15 +248,23 @@ class WeekFragment : Fragment() {
                     newYear: Int,
                     newMonth: Int
                 ): MutableList<out WeekViewEvent>? {
+//                    Log.i("monthChangeListener", "month change to $newYear $newMonth")
 //                    通过判断时间在加载上月和下月时返回null
                     val today = Calendar.getInstance().apply {
                         set(Calendar.YEAR, newYear)
                         set(Calendar.MONTH, newMonth - 1)
                     }
-                    if (today.time.before(minDate?.time) || today.time.after(maxDate?.time))
+                    if (today.time.before(minDate?.time) || today.time.after(maxDate?.let {
+                            it.set(Calendar.HOUR_OF_DAY, 23)
+                            it.set(Calendar.MINUTE, 59)
+                            it.set(Calendar.SECOND, 59)
+                            it.time
+                        })) {
                         return null
+                    }
 
-                    return ArrayList<WeekViewEvent>().apply {
+                    return weekViewEventList.apply {
+                        clear()
                         courseList.forEach {
                             add(
                                 WeekViewEvent(it.id,
@@ -254,9 +272,7 @@ class WeekFragment : Fragment() {
                                     it.location,
                                     Calendar.getInstance().apply { time = it.courseStrTime1 },
                                     Calendar.getInstance()
-                                        .apply { time = it.courseEndTime1 }).apply {
-                                    color = Color.CYAN
-                                }
+                                        .apply { time = it.courseEndTime1 })
                             )
                             if (it.courseStrTime2 != null && it.courseEndTime2 != null) {
                                 add(
@@ -265,13 +281,13 @@ class WeekFragment : Fragment() {
                                         it.location,
                                         Calendar.getInstance().apply { time = it.courseStrTime2 },
                                         Calendar.getInstance()
-                                            .apply { time = it.courseEndTime2 }).apply {
-                                        color = Color.CYAN
-                                    }
+                                            .apply { time = it.courseEndTime2 })
                                 )
                             }
                         }
-                        Log.i("course item count", this.size.toString())
+//                        刷新颜色数据
+                        courseItemColorAdapter.refresh()
+
                     }
                 }
             }
