@@ -20,17 +20,15 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 //查询一周的所有课程,需要单双周信息->"第n周"
-fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
+fun getAllCourse(user: LoggedInUser, thisWeek: Int, handler: Handler) {
     Thread {
         val courseList = ArrayList<CourseInfo>()
         val httpHelper = HttpHelper.obtain()
 
         httpHelper.okHttpClient.newCall(
-            Request.Builder().post(
-                Gson().toJson(user)
-                    .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/course?action=search&all=true&week=${getThisWeek(firstWeek)}")
-                .build()
+            Request.Builder()
+                .post(Gson().toJson(user).toRequestBody("application/json".toMediaTypeOrNull()))
+                .url(httpHelper.url + "/course?action=search&mode=week&week=$thisWeek").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
 
@@ -62,7 +60,55 @@ fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
                     this.obj = courseList
                 })
             }
+        })
 
+        httpHelper.recycle()
+    }.start()
+}
+
+//查看某天课程
+fun getDayCourse(user: LoggedInUser, thisWeek: Int, day: Calendar, handler: Handler) {
+    Thread {
+        val courseList = ArrayList<CourseInfo>()
+        val httpHelper = HttpHelper.obtain()
+
+        httpHelper.okHttpClient.newCall(
+            Request.Builder()
+                .post(Gson().toJson(user).toRequestBody("application/json".toMediaTypeOrNull()))
+                .url(
+                    httpHelper.url + "/course?action=search&mode=day&week=$thisWeek&time=${
+                        SimpleDateFormat("yyyy-MM-dd").format(day.time)
+                    }"
+                ).build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                JsonParser().parse(response.body?.string()).asJsonArray.forEach {
+                    courseList.add(it.asJsonObject.let {
+                        CourseInfo(
+                            it["name"].asString,
+                            simpleDateFormat.parse(it["strTime1"].asString),
+                            simpleDateFormat.parse(it["endTime1"].asString),
+                            null,
+                            null,
+                            0,
+                            0,
+                            null.toString(),
+                            it["location"].asString,
+                            it["id"].asString
+                        )
+                    })
+                }
+
+                handler.sendMessage(Message.obtain().apply {
+                    what = 1
+                    this.obj = courseList
+                })
+            }
         })
 
         httpHelper.recycle()
@@ -70,9 +116,9 @@ fun getAllCourse(user: LoggedInUser, firstWeek: Calendar, handler: Handler) {
 }
 
 //查看单个课程信息
-/*fun getSingleCourse(user: LoggedInUser, course: CourseInfo): CourseInfo {
+fun getSingleCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
 
-}*/
+}
 
 fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
     Thread {

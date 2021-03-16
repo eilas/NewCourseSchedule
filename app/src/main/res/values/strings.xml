@@ -3,4 +3,6 @@
 
     <string name="setFirstWeek">设置开始周</string>
     <string name="logout">登出</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>

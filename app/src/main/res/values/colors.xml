@@ -24,4 +24,8 @@
     <color name="course_color_14">#FFE57F</color>
     <color name="course_color_15">#FFD180</color>
     <color name="course_color_16">#FF9E80</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
 </resources>

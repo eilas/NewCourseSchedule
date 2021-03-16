@@ -5,7 +5,6 @@ import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +12,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.alamkanak.weekview.*
 import com.eilas.newcourseschedule.data.dropCourse
 import com.eilas.newcourseschedule.data.model.CourseInfo
@@ -123,8 +125,29 @@ class WeekFragment : Fragment() {
 
             eventClickListener = object : WeekView.EventClickListener {
                 override fun onEventClick(event: WeekViewEvent, eventRect: RectF) {
-                    Toast.makeText(this@WeekFragment.context, "event clicked", Toast.LENGTH_SHORT)
-                        .show()
+                    AlertDialog.Builder(context).setTitle("课程详情")
+                        .setView(RecyclerView(context).apply {
+                            layoutManager = GridLayoutManager(context,9)
+                            adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                                override fun onCreateViewHolder(
+                                    parent: ViewGroup,
+                                    viewType: Int
+                                ): RecyclerView.ViewHolder {
+                                    TODO("Not yet implemented")
+                                }
+
+                                override fun onBindViewHolder(
+                                    holder: RecyclerView.ViewHolder,
+                                    position: Int
+                                ) {
+                                    TODO("Not yet implemented")
+                                }
+
+                                override fun getItemCount(): Int {
+                                    TODO("Not yet implemented")
+                                }
+                            }
+                        }).setPositiveButton("好", { _, _ -> }).show()
                 }
             }
 
@@ -168,7 +191,7 @@ class WeekFragment : Fragment() {
                         (this as ViewGroup).removeAllViews()
                     }
 //                    添加课程
-                    AlertDialog.Builder(activity!!)
+                    AlertDialog.Builder(context)
                         .setTitle("添加课程")
                         .setView(alertAddCourseBinding.root)
                         .setPositiveButton(
@@ -294,6 +317,7 @@ class WeekFragment : Fragment() {
         }
     }
 
+    // TODO: 2021/3/14 7/3视图，设置icon
     fun changeViewTo(viewName: String) {
         weekFragmentBinding.weekView.numberOfVisibleDays =
             if (viewName.equals("week_view"))

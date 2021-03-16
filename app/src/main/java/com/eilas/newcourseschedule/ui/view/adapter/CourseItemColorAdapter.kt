@@ -1,6 +1,7 @@
 package com.eilas.newcourseschedule.ui.view.adapter
 
 import android.content.Context
+import android.util.Log
 import com.alamkanak.weekview.WeekViewEvent
 
 class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<WeekViewEvent>) {
@@ -27,7 +28,10 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
                 )
             }
 
-            /*add(resources.getColor(R.color.course_color_1))
+
+/*
+//            效果同上
+            add(resources.getColor(R.color.course_color_1))
             add(resources.getColor(R.color.course_color_2))
             add(resources.getColor(R.color.course_color_3))
             add(resources.getColor(R.color.course_color_4))
@@ -42,7 +46,8 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
             add(resources.getColor(R.color.course_color_13))
             add(resources.getColor(R.color.course_color_14))
             add(resources.getColor(R.color.course_color_15))
-            add(resources.getColor(R.color.course_color_16))*/
+            add(resources.getColor(R.color.course_color_16))
+*/
         }
     }
 
@@ -62,9 +67,11 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
         apply()
     }
 
+//    删除/新增课程时都会调用refresh回收/分配颜色
     fun refresh() {
         val weekViewEventIdSet = HashSet<String>()
         weekViewEventList.mapNotNullTo(weekViewEventIdSet, { it.id })
+        Log.i("week view event set", weekViewEventIdSet.toString())
         val death = colorMap.keys.filter { !weekViewEventIdSet.contains(it) }//已删除课程id
         val born = weekViewEventIdSet.filter { !colorMap.keys.contains(it) }//新加入课程id
         death.forEach {
@@ -86,7 +93,7 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
 
     private fun apply() {
         weekViewEventList.forEach {
-            it.color= colorMap[it.id]!!
+            it.color = colorMap[it.id]!!
         }
 //        colorMap.forEach { (event, color) -> event.color = color }
     }

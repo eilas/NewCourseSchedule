@@ -136,7 +136,7 @@ class CourseScheduleActivity : AppCompatActivity() {
     }
 
     fun refreshData(handler: Handler) {
-        getAllCourse(user, firstWeek, handler)
+        getAllCourse(user, getThisWeek(firstWeek), handler)
     }
 
     private fun setFirstWeek() {

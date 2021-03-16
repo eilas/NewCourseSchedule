@@ -12,9 +12,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NewCourseSchedule"
         android:usesCleartextTraffic="true">
+        <service
+            android:name=".widget.ListRemoteViewsService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <receiver android:name=".widget.DesktopWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/desktop_widget_provider_info" />
+        </receiver>
+
         <activity
             android:name=".ui.schedule.CourseScheduleActivity"
-            android:label="课程表"></activity>
+            android:label="课程表" />
         <activity android:name=".ui.login.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
