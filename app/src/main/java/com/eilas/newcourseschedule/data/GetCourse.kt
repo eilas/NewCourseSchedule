@@ -3,6 +3,7 @@ package com.eilas.newcourseschedule.data
 import android.os.Handler
 import android.os.Message
 import android.util.Log
+import android.util.Pair
 import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.google.gson.Gson
@@ -115,9 +116,47 @@ fun getDayCourse(user: LoggedInUser, thisWeek: Int, day: Calendar, handler: Hand
     }.start()
 }
 
-//查看单个课程信息
-fun getSingleCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
+//查看单个全部课程信息
+fun getSingleCourse(user: LoggedInUser, courseId: String, handler: Handler) {
+    Thread {
+        val pairList = ArrayList<Pair<String, String>>()
+        val httpHelper = HttpHelper.obtain()
 
+        httpHelper.okHttpClient.newCall(
+            Request.Builder().post(
+                Gson().toJson(mapOf("user" to user, "courseId" to courseId))
+                    .toRequestBody("application/json".toMediaTypeOrNull())
+            ).url(httpHelper.url + "/course?action=search&mode=single").build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                val simpleDateFormat1 = SimpleDateFormat("HH:mm")
+                JsonParser().parse(response.body?.string()).asJsonObject.let {
+                    pairList.apply {
+                        add(Pair("id", it["id"].asString))
+                        add(Pair("名称", it["name"].asString))
+                        add(Pair("上课时间", simpleDateFormat1.format(simpleDateFormat.parse(it["strTime1"].asString))))
+                        add(Pair("下课时间", simpleDateFormat1.format(simpleDateFormat.parse(it["endTime1"].asString))))
+                        add(Pair("开始周", it["strWeek"].asString))
+                        add(Pair("结束周", it["endWeek"].asString))
+                        add(Pair("地点", it["location"].asString))
+                        add(Pair("相关信息", it["info"].asString))
+                    }
+                }
+
+                handler.sendMessage(Message.obtain().apply {
+                    what = 3
+                    this.obj = pairList
+                })
+            }
+        })
+
+        httpHelper.recycle()
+    }.start()
 }
 
 fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {

@@ -5,6 +5,9 @@ import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
+import android.util.LruCache
+import android.util.Pair
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -12,16 +15,18 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alamkanak.weekview.*
 import com.eilas.newcourseschedule.data.dropCourse
+import com.eilas.newcourseschedule.data.getSingleCourse
 import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.eilas.newcourseschedule.ui.view.adapter.CourseInfoViewAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
@@ -34,6 +39,9 @@ class WeekFragment : Fragment() {
     private lateinit var alertAddCourseBinding: AlertAddCourseBinding
     private lateinit var courseList: ArrayList<CourseInfo>
     val weekViewEventList: ArrayList<WeekViewEvent> = ArrayList()
+    val singleCourseInfoCache = LruCache<String, ArrayList<Pair<String, String>>>(8)
+
+    var tempAdapter: RecyclerView.Adapter<*>? = null
     private val handler: Handler = Handler(WeakReference(Handler.Callback {
         when (it.what) {
             1 -> {
@@ -44,6 +52,15 @@ class WeekFragment : Fragment() {
             2 -> {
 //                重新获取全部课程数据
                 refreshData()
+            }
+            3 -> {
+                val pairList = it.obj as ArrayList<Pair<String, String>>
+                Log.i("pair list", pairList.toString())
+                singleCourseInfoCache[pairList.removeFirst().second].apply {
+                    clear()
+                    pairList.forEach { add(it) }
+                }
+                tempAdapter?.notifyDataSetChanged()
             }
 
             99 -> {
@@ -127,26 +144,32 @@ class WeekFragment : Fragment() {
                 override fun onEventClick(event: WeekViewEvent, eventRect: RectF) {
                     AlertDialog.Builder(context).setTitle("课程详情")
                         .setView(RecyclerView(context).apply {
-                            layoutManager = GridLayoutManager(context,9)
-                            adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-                                override fun onCreateViewHolder(
-                                    parent: ViewGroup,
-                                    viewType: Int
-                                ): RecyclerView.ViewHolder {
-                                    TODO("Not yet implemented")
-                                }
-
-                                override fun onBindViewHolder(
-                                    holder: RecyclerView.ViewHolder,
-                                    position: Int
-                                ) {
-                                    TODO("Not yet implemented")
-                                }
-
-                                override fun getItemCount(): Int {
-                                    TODO("Not yet implemented")
-                                }
+                            layoutManager = LinearLayoutManager(context).apply {
+                                orientation = LinearLayoutManager.VERTICAL
                             }
+
+                            adapter = CourseInfoViewAdapter(singleCourseInfoCache.let {
+                                try {
+                                    return@let it[event.id]?:throw Exception()
+                                } catch (e: Exception) {
+                                    it.put(event.id, ArrayList<Pair<String, String>>())
+                                    getSingleCourse(
+                                        (context as CourseScheduleActivity).user,
+                                        event.id!!,
+                                        this@WeekFragment.handler
+                                    )
+                                    return@let it[event.id]
+                                }
+                            })
+
+                            tempAdapter = adapter
+
+                            addItemDecoration(
+                                DividerItemDecoration(
+                                    this.context,
+                                    DividerItemDecoration.VERTICAL
+                                )
+                            )
                         }).setPositiveButton("好", { _, _ -> }).show()
                 }
             }
@@ -201,9 +224,9 @@ class WeekFragment : Fragment() {
                                 val itemStrEndTime = courseScheduleActivity.itemStrEndTime
                                 val strTime =
                                     alertAddCourseBinding.strTime.text.toString().toInt() - 1
-                                val endTIme =
-                                    strTime + alertAddCourseBinding.lastTime.text.toString()
-                                        .toInt() - 1
+                                val endTIme = x
+                                strTime + alertAddCourseBinding.lastTime.text.toString()
+                                    .toInt() - 1
                                 val strWeek = alertAddCourseBinding.strWeek.text.toString()
                                     .toInt()
                                 val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
