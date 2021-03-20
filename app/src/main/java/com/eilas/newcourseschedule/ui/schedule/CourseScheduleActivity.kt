@@ -1,8 +1,9 @@
 package com.eilas.newcourseschedule.ui.schedule
 
-import android.content.DialogInterface
+import android.content.*
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -20,10 +21,11 @@ import com.eilas.newcourseschedule.databinding.ActivityCourseScheduleBinding
 import com.eilas.newcourseschedule.databinding.AlertCalendarBinding
 import com.eilas.newcourseschedule.databinding.AlertCourseCountDayBinding
 import com.eilas.newcourseschedule.databinding.AlertCourseTimePickerBinding
+import com.eilas.newcourseschedule.service.CourseStartRemindService
 import com.eilas.newcourseschedule.ui.view.WeekFragment
 import java.lang.ref.WeakReference
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 
 // TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交
@@ -44,6 +46,8 @@ class CourseScheduleActivity : AppCompatActivity() {
                 supportFragmentManager.findFragmentById(R.id.weekFragment).apply {
                     (this as WeekFragment).initView(it.obj as ArrayList<CourseInfo>, firstWeek)
                 }
+//                init service
+                initService(it.obj as ArrayList<CourseInfo>)
             }
         }
         true
@@ -219,5 +223,37 @@ class CourseScheduleActivity : AppCompatActivity() {
                 showAlertDialog(i, count)
 
             }).show()
+    }
+
+    fun initService(courseList: List<CourseInfo>) {
+        Intent(this, CourseStartRemindService::class.java).let {
+            bindService(it, object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                    (service as CourseStartRemindService.CourseListBinder).apply {
+                        this.courseList = courseList
+                        this.courseDuration =
+                            TimeUnit.MILLISECONDS.toMinutes(itemStrEndTime["endTime0"]?.time!!.time - itemStrEndTime["strTime0"]?.time!!.time)
+                        this.dayStartTime = Calendar.getInstance().apply {
+                            itemStrEndTime["strTime0"]!!.let {
+                                set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
+                                set(Calendar.MINUTE, it[Calendar.MINUTE])
+                            }
+                        }
+                        this.dayEndTime = Calendar.getInstance().apply {
+                            itemStrEndTime["endTime${itemStrEndTime.size / 2 - 1}"]!!.let {
+                                set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
+                                set(Calendar.MINUTE, it[Calendar.MINUTE])
+                            }
+                        }
+//                        bind service成功后start service
+                        startService(it)
+                    }
+                }
+
+                override fun onServiceDisconnected(name: ComponentName?) {
+
+                }
+            }, Context.BIND_AUTO_CREATE)
+        }
     }
 }

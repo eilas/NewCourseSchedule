@@ -13,6 +13,10 @@
         android:theme="@style/Theme.NewCourseSchedule"
         android:usesCleartextTraffic="true">
         <service
+            android:name=".service.CourseStartRemindService"
+            android:enabled="true"
+            android:exported="false" />
+        <service
             android:name=".widget.ListRemoteViewsService"
             android:enabled="true"
             android:exported="true"

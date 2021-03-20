@@ -15,6 +15,7 @@ import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
 import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
+import com.eilas.newcourseschedule.service.CourseStartRemindService
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
@@ -28,21 +29,24 @@ class LoginActivity : AppCompatActivity() {
         when (it.what) {
 //            登录/注册成功
             3 -> {
-                saveUser(this@LoginActivity, loggedInUser)
+                saveUser(this, loggedInUser)
                 startActivity(
-                    Intent(this@LoginActivity, CourseScheduleActivity::class.java).setFlags(
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                    ).putExtras(Bundle().apply {
-                        putParcelable(
-                            "user",
-                            loggedInUser as Parcelable
-                        )
-                    })
+                    Intent(
+                        this,
+                        CourseScheduleActivity::class.java
+                    ).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        .putExtras(Bundle().apply {
+                            putParcelable(
+                                "user",
+                                loggedInUser as Parcelable
+                            )
+                        })
                 )
+//                startService(Intent(this, CourseStartRemindService::class.java))
             }
 //            pwd错误
             4 -> {
-                Toast.makeText(this@LoginActivity, "密码错误！", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show()
             }
 //            无用户
             5 -> showRegisterDialog()
@@ -77,7 +81,7 @@ class LoginActivity : AppCompatActivity() {
 
     fun showRegisterDialog() {
 //        弹框
-        AlertDialog.Builder(this@LoginActivity)
+        AlertDialog.Builder(this)
             .setTitle("用户不存在")
             .setMessage("注册？")
             .setView(alertLoginRegisterBinding.root.apply {

@@ -15,8 +15,12 @@ class ExampleUnitTest {
 
     class 人类(val 姓名: String) {
         infix fun 加(人: 人类): String = "$姓名 ${人.姓名}"
+
         operator fun plus(人: 人类): String {
-            return this 加 人
+//            return this 加 人
+            return 人 加 this
+//            StackOverflowError
+//            return 人 + this
         }
     }
 }

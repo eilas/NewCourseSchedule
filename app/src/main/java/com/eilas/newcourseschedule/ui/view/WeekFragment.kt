@@ -45,7 +45,10 @@ class WeekFragment : Fragment() {
     private val handler: Handler = Handler(WeakReference(Handler.Callback {
         when (it.what) {
             1 -> {
-                courseList = it.obj as ArrayList<CourseInfo>
+                courseList.apply {
+                    clear()
+                    (it.obj as ArrayList<CourseInfo>).forEach { add(it) }
+                }
 //                重新展示全部课程
                 weekFragmentBinding.weekView.notifyDataSetChanged()
             }
@@ -150,7 +153,7 @@ class WeekFragment : Fragment() {
 
                             adapter = CourseInfoViewAdapter(singleCourseInfoCache.let {
                                 try {
-                                    return@let it[event.id]?:throw Exception()
+                                    return@let it[event.id] ?: throw Exception()
                                 } catch (e: Exception) {
                                     it.put(event.id, ArrayList<Pair<String, String>>())
                                     getSingleCourse(
@@ -173,7 +176,6 @@ class WeekFragment : Fragment() {
                         }).setPositiveButton("好", { _, _ -> }).show()
                 }
             }
-
             eventLongPressListener = object : WeekView.EventLongPressListener {
                 override fun onEventLongPress(event: WeekViewEvent, eventRect: RectF) {
 //                    长按删除
@@ -224,9 +226,9 @@ class WeekFragment : Fragment() {
                                 val itemStrEndTime = courseScheduleActivity.itemStrEndTime
                                 val strTime =
                                     alertAddCourseBinding.strTime.text.toString().toInt() - 1
-                                val endTIme = x
-                                strTime + alertAddCourseBinding.lastTime.text.toString()
-                                    .toInt() - 1
+                                val endTIme =
+                                    strTime + alertAddCourseBinding.lastTime.text.toString()
+                                        .toInt() - 1
                                 val strWeek = alertAddCourseBinding.strWeek.text.toString()
                                     .toInt()
                                 val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
