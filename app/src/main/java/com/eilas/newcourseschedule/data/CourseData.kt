@@ -24,7 +24,7 @@ import kotlin.collections.ArrayList
 fun getAllCourse(user: LoggedInUser, thisWeek: Int, handler: Handler) {
     Thread {
         val courseList = ArrayList<CourseInfo>()
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder()
@@ -71,7 +71,7 @@ fun getAllCourse(user: LoggedInUser, thisWeek: Int, handler: Handler) {
 fun getDayCourse(user: LoggedInUser, thisWeek: Int, day: Calendar, handler: Handler) {
     Thread {
         val courseList = ArrayList<CourseInfo>()
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder()
@@ -120,7 +120,7 @@ fun getDayCourse(user: LoggedInUser, thisWeek: Int, day: Calendar, handler: Hand
 fun getSingleCourse(user: LoggedInUser, courseId: String, handler: Handler) {
     Thread {
         val pairList = ArrayList<Pair<String, String>>()
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(
@@ -162,7 +162,7 @@ fun getSingleCourse(user: LoggedInUser, courseId: String, handler: Handler) {
 fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
     Thread {
         val gson = GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create()
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(
@@ -193,7 +193,7 @@ fun saveCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
 
 fun dropCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
     Thread {
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(

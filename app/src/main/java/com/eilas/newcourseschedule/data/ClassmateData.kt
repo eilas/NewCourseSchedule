@@ -2,7 +2,6 @@ package com.eilas.newcourseschedule.data
 
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -14,40 +13,31 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-fun register(user: LoggedInUser,handler: Handler) {
+fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
     Thread {
-        val gson = Gson()
+
         val httpHelper = HttpHelpers.obtain()
-//        发送注册信息
+
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(
-                gson.toJson(user)
+                Gson().toJson(mapOf("user" to user, "courseId" to courseId))
                     .toRequestBody("application/json".toMediaTypeOrNull())
-            ).url(httpHelper.url + "/register").build()
+            ).url("${httpHelper.url}/user?action=search").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.w("response", "failure!!!")
+
             }
 
             override fun onResponse(call: Call, response: Response) {
-                JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
-                    when (it) {
-                        "OK" -> {
-                            handler.sendMessage(Message.obtain().let {
-                                it.what = 3
-                                it
-                            })
-                        }
-                        else -> {
-                            Log.e("服务器返回", it)
-                            throw Exception("似乎进入了未知领域...")
-                        }
-                    }
-                }
-            }
+                JsonParser().parse(response.body?.string()).asJsonObject.let {
 
+                }
+
+                handler.sendMessage(Message.obtain().apply {
+                })
+            }
         })
+
         httpHelper.recycle()
     }.start()
 }
-

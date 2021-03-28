@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.ui.login.LoginActivity
 import com.eilas.newcourseschedule.ui.login.deleteUser
@@ -21,7 +20,7 @@ import java.io.IOException
 fun login(user: LoggedInUser,handler: Handler) {
     Thread {
         val gson = Gson()
-        val httpHelper = HttpHelper.obtain()
+        val httpHelper = HttpHelpers.obtain()
 //        发送登录信息
         httpHelper.okHttpClient.newCall(
             Request.Builder().post(

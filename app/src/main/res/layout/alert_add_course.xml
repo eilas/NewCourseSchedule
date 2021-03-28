@@ -79,7 +79,7 @@
             android:id="@+id/courseInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="课程介绍" />
+            android:hint="课程备注" />
     </com.google.android.material.textfield.TextInputLayout>
 
 </LinearLayout>

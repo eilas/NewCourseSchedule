@@ -97,7 +97,7 @@ class LoginActivity : AppCompatActivity() {
                         activityLoginBinding.pwd.text.toString(),
                         alertLoginRegisterBinding.textName.text.toString()
                             .apply {
-//                                                未输入姓名则使用id
+//                                未输入姓名则使用id
                                 if (length == 0)
                                     activityLoginBinding.id.text.toString()
                             },

@@ -20,13 +20,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alamkanak.weekview.*
 import com.eilas.newcourseschedule.data.dropCourse
+import com.eilas.newcourseschedule.data.getClassmate
 import com.eilas.newcourseschedule.data.getSingleCourse
 import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
-import com.eilas.newcourseschedule.ui.view.adapter.CourseInfoViewAdapter
+import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleRowAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
@@ -151,7 +152,7 @@ class WeekFragment : Fragment() {
                                 orientation = LinearLayoutManager.VERTICAL
                             }
 
-                            adapter = CourseInfoViewAdapter(singleCourseInfoCache.let {
+                            adapter = BasicDoubleRowAdapter(singleCourseInfoCache.let {
                                 try {
                                     return@let it[event.id] ?: throw Exception()
                                 } catch (e: Exception) {
@@ -173,7 +174,32 @@ class WeekFragment : Fragment() {
                                     DividerItemDecoration.VERTICAL
                                 )
                             )
-                        }).setPositiveButton("好", { _, _ -> }).show()
+                        }).setNegativeButton("返回", null)
+                        .setPositiveButton("查看同学") { dialog, which ->
+                            getClassmate(
+                                (context as CourseScheduleActivity).user,
+                                event.id.toString(),
+                                this@WeekFragment.handler
+                            )
+                            AlertDialog.Builder(context).setTitle("课程同学").setView(RecyclerView(context).apply {
+                                layoutManager = LinearLayoutManager(context).apply {
+                                    orientation = LinearLayoutManager.VERTICAL
+                                }
+                                adapter=BasicDoubleRowAdapter(singleCourseInfoCache.let {
+                                    try {
+                                        return@let it[event.id] ?: throw Exception()
+                                    } catch (e: Exception) {
+                                        it.put(event.id, ArrayList<Pair<String, String>>())
+                                        getSingleCourse(
+                                            (context as CourseScheduleActivity).user,
+                                            event.id!!,
+                                            this@WeekFragment.handler
+                                        )
+                                        return@let it[event.id]
+                                    }
+                                })
+                            })
+                        }.show()
                 }
             }
             eventLongPressListener = object : WeekView.EventLongPressListener {

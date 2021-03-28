@@ -4,6 +4,7 @@ import android.content.*
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
+import android.os.Parcelable
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -62,12 +63,6 @@ class CourseScheduleActivity : AppCompatActivity() {
         setContentView(activityCourseScheduleBinding.root)
 
         user = intent.extras?.getParcelable<LoggedInUser>("user")!!
-
-        val loadItemStrEndTime = loadItemStrEndTime(this)
-        if (loadItemStrEndTime.isEmpty())
-            Toast.makeText(this, "请设置课节数及上课时间！", Toast.LENGTH_LONG).show()
-        else
-            itemStrEndTime = loadItemStrEndTime
 
         initView()
 
@@ -128,14 +123,22 @@ class CourseScheduleActivity : AppCompatActivity() {
 
     private fun initData() {
         kotlin.runCatching {
-//            init firstWeek
+//            init firstWeek and the str-end time for each item
             firstWeek = loadFirstWeek(this)!!
+            itemStrEndTime = loadItemStrEndTime(this)
+            if (itemStrEndTime.isEmpty()) throw Exception("设置课节数及上课时间")
             refreshData(handler)
         }.onFailure {
-            Toast.makeText(this, "请设置第一周！", Toast.LENGTH_LONG).show()
-            setFirstWeek()
-            firstWeek = loadFirstWeek(this)!!
-            return initData()
+            if (it.message.equals("设置课节数及上课时间")) {
+                Toast.makeText(this, "请设置课节数及上课时间！", Toast.LENGTH_LONG).show()
+                setItemStrEndTime(true)
+            } else {
+                Toast.makeText(this, "请设置第一周！", Toast.LENGTH_LONG).show()
+                setFirstWeek()
+            }
+//            firstWeek = loadFirstWeek(this)!!
+
+//            return initData()
         }
     }
 
@@ -151,15 +154,18 @@ class CourseScheduleActivity : AppCompatActivity() {
                 setOnDateChangeListener { view, year, month, dayOfMonth ->
                     saveFirstWeek(this@CourseScheduleActivity,
                         Calendar.getInstance().apply {
+                            firstDayOfWeek = Calendar.MONDAY
                             set(year, month, dayOfMonth)
                             firstWeek = this
                         })
                     alertDialog?.dismiss()
+//                    设置first week后需要initData，主要是为了调用handler的callback方法
+                    initData()
                 }
             }).show()
     }
 
-    private fun setItemStrEndTime() {
+    private fun setItemStrEndTime(needRestart: Boolean = false) {
         AlertDialog.Builder(this).setTitle("设置课节数及上课时间")
             .setView(alertCourseCountDayBinding.root.apply {
                 parent?.apply {
@@ -216,6 +222,20 @@ class CourseScheduleActivity : AppCompatActivity() {
 //                        saveItemStrEndTime在showAlertDialog里执行能保证所有AlertDialog显示完后再执行
                         saveItemStrEndTime(this, calendarMap)
                         itemStrEndTime = calendarMap
+
+//                        第一次使用APP时需要设置每节课时间，设置完后需要重新启动activity
+                        if (needRestart) {
+                            startActivity(
+                                Intent(this, CourseScheduleActivity::class.java).setFlags(
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                ).putExtras(Bundle().apply {
+                                    putParcelable(
+                                        "user",
+                                        user as Parcelable
+                                    )
+                                })
+                            )
+                        }
                     }
                 }
 
@@ -230,7 +250,7 @@ class CourseScheduleActivity : AppCompatActivity() {
             bindService(it, object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                     (service as CourseStartRemindService.CourseListBinder).apply {
-                        this.courseList = courseList
+                        if (this.courseList == null) this.courseList = courseList
                         this.courseDuration =
                             TimeUnit.MILLISECONDS.toMinutes(itemStrEndTime["endTime0"]?.time!!.time - itemStrEndTime["strTime0"]?.time!!.time)
                         this.dayStartTime = Calendar.getInstance().apply {

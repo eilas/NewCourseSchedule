@@ -8,7 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.eilas.newcourseschedule.R
 
-class CourseInfoViewAdapter(val dataList: List<Pair<String, String>>) :
+class BasicDoubleRowAdapter(val dataList: List<Pair<String, String>>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val textView3 = view.findViewById<TextView>(R.id.textView3)

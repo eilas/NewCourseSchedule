@@ -22,6 +22,7 @@ class CourseStartRemindService : Service() {
         var courseList: List<CourseInfo>? = null
             set(value) {
                 if (courseList != null) {
+
                     throw Exception("虽然courseList是var,但不可以再次引用其他对象")
                 } else {
                     field = value
