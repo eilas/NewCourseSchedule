@@ -3,6 +3,7 @@ package com.eilas.newcourseschedule.data
 import android.os.Handler
 import android.os.Message
 import com.eilas.newcourseschedule.data.model.LoggedInUser
+import com.eilas.newcourseschedule.data.model.User
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import okhttp3.Call
@@ -29,11 +30,29 @@ fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                JsonParser().parse(response.body?.string()).asJsonObject.let {
+                val classmateList = JsonParser().parse(response.body?.string()).asJsonArray.map {
+                    it.asJsonObject.let {
+/*
+                        OtherUser(
+                            it["id"].asString,
+                            it["name"].asString,
+                            if (it["sex"].asString.equals(User.Sex.MALE)) User.Sex.MALE else User.Sex.FEMALE
+                        )
+*/
+                        Triple(
+                            it["id"].asString,
+                            it["name"].asString,
+                            if (User.Sex.valueOf(it["sex"].asString)
+                                    .equals(User.Sex.MALE)
+                            ) "男" else "女"
+                        )
 
+                    }
                 }
 
                 handler.sendMessage(Message.obtain().apply {
+                    what = 4
+                    obj = classmateList
                 })
             }
         })

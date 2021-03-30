@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
+import com.eilas.newcourseschedule.data.model.User
 import com.google.android.material.snackbar.Snackbar
 
 fun saveUser(context: Context, user: LoggedInUser) {
@@ -19,10 +20,10 @@ fun loadUser(context: Context): LoggedInUser? {
         val id = it.getString("id", null)
         val pwd = it.getString("pwd", null)
         val name = it.getString("name", null)
-        val sex = if (LoggedInUser.Sex.MALE.equals(it.getString("sex", null)))
-            LoggedInUser.Sex.MALE
+        val sex = if (User.Sex.MALE.equals(it.getString("sex", null)))
+            User.Sex.MALE
         else
-            LoggedInUser.Sex.FEMALE
+            User.Sex.FEMALE
 
         if (id != null && pwd != null)
             LoggedInUser(id, pwd, name.toString(), sex)

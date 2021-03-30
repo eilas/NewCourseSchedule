@@ -125,6 +125,7 @@ class CourseScheduleActivity : AppCompatActivity() {
         kotlin.runCatching {
 //            init firstWeek and the str-end time for each item
             firstWeek = loadFirstWeek(this)!!
+            Log.i("第一周", firstWeek.time.toString())
             itemStrEndTime = loadItemStrEndTime(this)
             if (itemStrEndTime.isEmpty()) throw Exception("设置课节数及上课时间")
             refreshData(handler)

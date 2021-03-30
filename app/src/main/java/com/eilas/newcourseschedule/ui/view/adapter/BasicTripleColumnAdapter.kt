@@ -1,6 +1,5 @@
 package com.eilas.newcourseschedule.ui.view.adapter
 
-import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,11 +7,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.eilas.newcourseschedule.R
 
-class BasicDoubleRowAdapter(val dataList: List<Pair<String, String>>) :
+class BasicTripleColumnAdapter(val dataList: List<Triple<String, String, String>>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-        val textView3 = view.findViewById<TextView>(R.id.textView3)
-        val textView4 = view.findViewById<TextView>(R.id.textView4)
+        val textView5 = view.findViewById<TextView>(R.id.textView5)
+        val textView6 = view.findViewById<TextView>(R.id.textView6)
+        val textView7 = view.findViewById<TextView>(R.id.textView7)
     }
 
     override fun onCreateViewHolder(
@@ -21,7 +21,7 @@ class BasicDoubleRowAdapter(val dataList: List<Pair<String, String>>) :
     ): RecyclerView.ViewHolder {
         return VH(
             LayoutInflater.from(parent.context)
-                .inflate(R.layout.alert_course_info_item, parent, false)
+                .inflate(R.layout.triple_column_item, parent, false)
         )
     }
 
@@ -31,8 +31,9 @@ class BasicDoubleRowAdapter(val dataList: List<Pair<String, String>>) :
     ) {
         (holder as VH).apply {
             (dataList[position]).apply {
-                textView3.text = first
-                textView4.text = second
+                textView5.text = component1()
+                textView6.text = component2()
+                textView7.text = component3()
             }
         }
     }

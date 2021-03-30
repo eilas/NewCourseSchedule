@@ -3,7 +3,6 @@ package com.eilas.newcourseschedule.data
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import android.util.Pair
 import com.eilas.newcourseschedule.data.model.CourseInfo
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.google.gson.Gson
@@ -139,8 +138,18 @@ fun getSingleCourse(user: LoggedInUser, courseId: String, handler: Handler) {
                     pairList.apply {
                         add(Pair("id", it["id"].asString))
                         add(Pair("名称", it["name"].asString))
-                        add(Pair("上课时间", simpleDateFormat1.format(simpleDateFormat.parse(it["strTime1"].asString))))
-                        add(Pair("下课时间", simpleDateFormat1.format(simpleDateFormat.parse(it["endTime1"].asString))))
+                        add(
+                            Pair(
+                                "上课时间",
+                                simpleDateFormat1.format(simpleDateFormat.parse(it["strTime1"].asString))
+                            )
+                        )
+                        add(
+                            Pair(
+                                "下课时间",
+                                simpleDateFormat1.format(simpleDateFormat.parse(it["endTime1"].asString))
+                            )
+                        )
                         add(Pair("开始周", it["strWeek"].asString))
                         add(Pair("结束周", it["endWeek"].asString))
                         add(Pair("地点", it["location"].asString))

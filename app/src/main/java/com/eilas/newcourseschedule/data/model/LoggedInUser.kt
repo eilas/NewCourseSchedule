@@ -3,12 +3,18 @@ package com.eilas.newcourseschedule.data.model
 import android.os.Parcel
 import android.os.Parcelable
 
+abstract class User(id: String) {
+    enum class Sex(i: Int) {
+        MALE(0), FEMALE(1)
+    }
+}
+
 data class LoggedInUser(
     val id: String,
     val pwd: String,
     val name: String = id,
     val sex: Sex = Sex.MALE
-) : Parcelable {
+) : User(id), Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readString().toString(),
         parcel.readString().toString(),
@@ -19,9 +25,6 @@ data class LoggedInUser(
             Sex.FEMALE
     )
 
-    enum class Sex(i: Int) {
-        MALE(0), FEMALE(1)
-    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(id)
@@ -44,3 +47,5 @@ data class LoggedInUser(
         }
     }
 }
+
+data class OtherUser(val id: String, val name: String, val sex: Sex) : User(id)

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
+import com.eilas.newcourseschedule.data.model.User
 import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
 import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
@@ -102,9 +103,9 @@ class LoginActivity : AppCompatActivity() {
                                     activityLoginBinding.id.text.toString()
                             },
                         if (alertLoginRegisterBinding.groupSex.checkedRadioButtonId == R.id.radioButton_male)
-                            LoggedInUser.Sex.MALE
+                            User.Sex.MALE
                         else
-                            LoggedInUser.Sex.FEMALE
+                            User.Sex.FEMALE
                     )
 
                     register(loggedInUser, handler)

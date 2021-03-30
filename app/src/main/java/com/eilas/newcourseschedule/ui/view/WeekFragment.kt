@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.util.LruCache
-import android.util.Pair
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -27,7 +26,8 @@ import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
 import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
-import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleRowAdapter
+import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
+import com.eilas.newcourseschedule.ui.view.adapter.BasicTripleColumnAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
@@ -58,13 +58,28 @@ class WeekFragment : Fragment() {
                 refreshData()
             }
             3 -> {
+//                展示课程数据
                 val pairList = it.obj as ArrayList<Pair<String, String>>
                 Log.i("pair list", pairList.toString())
+//                pairList.removeFirst().second获得course id
                 singleCourseInfoCache[pairList.removeFirst().second].apply {
                     clear()
                     pairList.forEach { add(it) }
                 }
                 tempAdapter?.notifyDataSetChanged()
+            }
+            4 -> {
+//                展示课程同学数据
+                val classmateList = it.obj as ArrayList<Triple<String, String, String>>
+                Log.i("classmate list", classmateList.toString())
+
+                (tempAdapter as BasicTripleColumnAdapter).apply {
+                    (dataList as ArrayList).apply {
+                        clear()
+                        classmateList.forEach { add(it) }
+                    }
+                    notifyDataSetChanged()
+                }
             }
 
             99 -> {
@@ -152,7 +167,7 @@ class WeekFragment : Fragment() {
                                 orientation = LinearLayoutManager.VERTICAL
                             }
 
-                            adapter = BasicDoubleRowAdapter(singleCourseInfoCache.let {
+                            adapter = BasicDoubleColumnAdapter(singleCourseInfoCache.let {
                                 try {
                                     return@let it[event.id] ?: throw Exception()
                                 } catch (e: Exception) {
@@ -176,29 +191,25 @@ class WeekFragment : Fragment() {
                             )
                         }).setNegativeButton("返回", null)
                         .setPositiveButton("查看同学") { dialog, which ->
-                            getClassmate(
-                                (context as CourseScheduleActivity).user,
-                                event.id.toString(),
-                                this@WeekFragment.handler
-                            )
-                            AlertDialog.Builder(context).setTitle("课程同学").setView(RecyclerView(context).apply {
-                                layoutManager = LinearLayoutManager(context).apply {
-                                    orientation = LinearLayoutManager.VERTICAL
-                                }
-                                adapter=BasicDoubleRowAdapter(singleCourseInfoCache.let {
-                                    try {
-                                        return@let it[event.id] ?: throw Exception()
-                                    } catch (e: Exception) {
-                                        it.put(event.id, ArrayList<Pair<String, String>>())
-                                        getSingleCourse(
-                                            (context as CourseScheduleActivity).user,
-                                            event.id!!,
-                                            this@WeekFragment.handler
-                                        )
-                                        return@let it[event.id]
+                            AlertDialog.Builder(context).setTitle("课程同学")
+                                .setView(RecyclerView(context).apply {
+                                    layoutManager = LinearLayoutManager(context).apply {
+                                        orientation = LinearLayoutManager.VERTICAL
                                     }
-                                })
-                            })
+                                    adapter = BasicTripleColumnAdapter(ArrayList())
+                                    tempAdapter = adapter
+                                    addItemDecoration(
+                                        DividerItemDecoration(
+                                            this.context,
+                                            DividerItemDecoration.VERTICAL
+                                        )
+                                    )
+                                    getClassmate(
+                                        (context as CourseScheduleActivity).user,
+                                        event.id.toString(),
+                                        this@WeekFragment.handler
+                                    )
+                                }).show()
                         }.show()
                 }
             }
