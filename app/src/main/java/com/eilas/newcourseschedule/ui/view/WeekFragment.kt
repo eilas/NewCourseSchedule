@@ -1,10 +1,11 @@
 package com.eilas.newcourseschedule.ui.view
 
-import android.content.DialogInterface
+import android.content.Intent
 import android.graphics.RectF
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.util.LruCache
 import android.util.TypedValue
@@ -18,14 +19,13 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alamkanak.weekview.*
-import com.eilas.newcourseschedule.data.dropCourse
-import com.eilas.newcourseschedule.data.getClassmate
-import com.eilas.newcourseschedule.data.getSingleCourse
+import com.eilas.newcourseschedule.R
+import com.eilas.newcourseschedule.data.*
 import com.eilas.newcourseschedule.data.model.CourseInfo
-import com.eilas.newcourseschedule.data.saveCourse
 import com.eilas.newcourseschedule.databinding.AlertAddCourseBinding
 import com.eilas.newcourseschedule.databinding.WeekFragmentBinding
-import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.eilas.newcourseschedule.ui.CommunicationActivity
+import com.eilas.newcourseschedule.ui.CourseScheduleActivity
 import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.BasicTripleColumnAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
@@ -52,10 +52,15 @@ class WeekFragment : Fragment() {
                 }
 //                重新展示全部课程
                 weekFragmentBinding.weekView.notifyDataSetChanged()
+//                通知CourseStartRemindService课程改变
+                ((context as CourseScheduleActivity).supportFragmentManager.findFragmentById(R.id.weekFragment) as WeekFragment).handler.sendMessage(
+                    Message.obtain().apply { what = 99 })
             }
             2 -> {
 //                重新获取全部课程数据
-                refreshData()
+                (context as CourseScheduleActivity).apply {
+                    refreshData((supportFragmentManager.findFragmentById(R.id.weekFragment) as WeekFragment).handler)
+                }
             }
             3 -> {
 //                展示课程数据
@@ -82,7 +87,9 @@ class WeekFragment : Fragment() {
                 }
             }
 
-            99 -> {
+            5 -> {
+                // TODO: 2021/4/23  通知CourseStartRemindService课程改变
+
 
             }
         }
@@ -156,7 +163,6 @@ class WeekFragment : Fragment() {
                 override fun onEmptyViewClicked(date: Calendar) {
                     Toast.makeText(context, date.time.toString(), Toast.LENGTH_SHORT).show()
                 }
-
             }
 
             eventClickListener = object : WeekView.EventClickListener {
@@ -189,14 +195,26 @@ class WeekFragment : Fragment() {
                                     DividerItemDecoration.VERTICAL
                                 )
                             )
-                        }).setNegativeButton("返回", null)
-                        .setPositiveButton("查看同学") { dialog, which ->
+                        }).setNegativeButton("查看同学") { dialog, which ->
                             AlertDialog.Builder(context).setTitle("课程同学")
                                 .setView(RecyclerView(context).apply {
                                     layoutManager = LinearLayoutManager(context).apply {
                                         orientation = LinearLayoutManager.VERTICAL
                                     }
-                                    adapter = BasicTripleColumnAdapter(ArrayList())
+                                    adapter =
+                                        BasicTripleColumnAdapter(ArrayList()) { toUserId, time ->
+                                            (context as CourseScheduleActivity).user.apply {
+                                                sendNotifyToClassmate(
+                                                    id,
+                                                    toUserId,
+                                                    name,
+                                                    time,
+                                                    singleCourseInfoCache[event.id].first().second,
+                                                    this@WeekFragment.handler
+                                                )
+                                            }
+                                            true
+                                        }
                                     tempAdapter = adapter
                                     addItemDecoration(
                                         DividerItemDecoration(
@@ -210,9 +228,22 @@ class WeekFragment : Fragment() {
                                         this@WeekFragment.handler
                                     )
                                 }).show()
+                        }.setPositiveButton("互动（大嘘）") { dialog, which ->
+                            val (userId, _, userName, _) = (context as CourseScheduleActivity).user
+                            startActivity(
+                                Intent(context, CommunicationActivity::class.java)
+                                    .putExtra("courseId", event.id)
+                                    .putExtra(
+                                        "courseName",
+                                        singleCourseInfoCache[event.id][0].component2()
+                                    )
+                                    .putExtra("userId", userId)
+                                    .putExtra("userName", userName)
+                            )
                         }.show()
                 }
             }
+
             eventLongPressListener = object : WeekView.EventLongPressListener {
                 override fun onEventLongPress(event: WeekViewEvent, eventRect: RectF) {
 //                    长按删除
@@ -228,12 +259,11 @@ class WeekFragment : Fragment() {
                             notifyDataSetChanged()
                         }.addCallback(object : Snackbar.Callback() {
                             override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                                if (!revoke)
-                                    dropCourse(
-                                        (context as CourseScheduleActivity).user,
-                                        courseInfo!!,
-                                        this@WeekFragment.handler
-                                    )
+                                if (!revoke) dropCourse(
+                                    (context as CourseScheduleActivity).user,
+                                    courseInfo!!,
+                                    this@WeekFragment.handler
+                                )
                             }
                         }).show()
                     }
@@ -256,58 +286,55 @@ class WeekFragment : Fragment() {
                     AlertDialog.Builder(context)
                         .setTitle("添加课程")
                         .setView(alertAddCourseBinding.root)
-                        .setPositiveButton(
-                            "是",
-                            DialogInterface.OnClickListener { dialog, which ->
-                                val courseScheduleActivity = context as CourseScheduleActivity
-                                val itemStrEndTime = courseScheduleActivity.itemStrEndTime
-                                val strTime =
-                                    alertAddCourseBinding.strTime.text.toString().toInt() - 1
-                                val endTIme =
-                                    strTime + alertAddCourseBinding.lastTime.text.toString()
-                                        .toInt() - 1
-                                val strWeek = alertAddCourseBinding.strWeek.text.toString()
-                                    .toInt()
-                                val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
-                                    .toInt()
-                                saveCourse(
-                                    courseScheduleActivity.user, CourseInfo(
-                                        courseName = alertAddCourseBinding.courseName.text.toString(),
+                        .setPositiveButton("是") { dialog, which ->
+                            val courseScheduleActivity = context as CourseScheduleActivity
+                            val itemStrEndTime = courseScheduleActivity.itemStrEndTime
+                            val strTime =
+                                alertAddCourseBinding.strTime.text.toString().toInt() - 1
+                            val endTIme =
+                                strTime + alertAddCourseBinding.lastTime.text.toString()
+                                    .toInt() - 1
+                            val strWeek = alertAddCourseBinding.strWeek.text.toString()
+                                .toInt()
+                            val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
+                                .toInt()
+                            saveCourse(
+                                courseScheduleActivity.user, CourseInfo(
+                                    courseName = alertAddCourseBinding.courseName.text.toString(),
 //                                        课程时间设置为课程第一周的具体时间
-                                        courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.let {
+                                    courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.let {
 //                                            将itemStrEndTime的时分与 通过firstWeek和strWeek获取的课程第一周 和startTime的周几拼接，courseEndTime1下同
-                                            (firstWeek.clone() as Calendar).apply {
-                                                add(Calendar.DATE, (strWeek - 1) * 7)//第几周
-                                                set(
-                                                    Calendar.DAY_OF_WEEK,
-                                                    startTime.get(Calendar.DAY_OF_WEEK)
-                                                )//周几
-                                                set(
-                                                    Calendar.HOUR_OF_DAY,
-                                                    it[Calendar.HOUR_OF_DAY]
-                                                )//时
-                                                set(Calendar.MINUTE, it[Calendar.MINUTE])//分
-                                            }
-                                        }.time,
-                                        courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.let {
-                                            (firstWeek.clone() as Calendar).apply {
-                                                add(Calendar.DATE, (strWeek - 1) * 7)
-                                                set(
-                                                    Calendar.DAY_OF_WEEK,
-                                                    startTime.get(Calendar.DAY_OF_WEEK)
-                                                )
-                                                set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
-                                                set(Calendar.MINUTE, it[Calendar.MINUTE])
-                                            }
-                                        }.time,
-                                        strWeek = strWeek,
-                                        lastWeek = lastWeek,
-                                        info = alertAddCourseBinding.courseInfo.text.toString(),
-                                        location = alertAddCourseBinding.location.text.toString()
-                                    ), this@WeekFragment.handler
-                                )
-                            }
-                        )
+                                        (firstWeek.clone() as Calendar).apply {
+                                            add(Calendar.DATE, (strWeek - 1) * 7)//第几周
+                                            set(
+                                                Calendar.DAY_OF_WEEK,
+                                                startTime.get(Calendar.DAY_OF_WEEK)
+                                            )//周几
+                                            set(
+                                                Calendar.HOUR_OF_DAY,
+                                                it[Calendar.HOUR_OF_DAY]
+                                            )//时
+                                            set(Calendar.MINUTE, it[Calendar.MINUTE])//分
+                                        }
+                                    }.time,
+                                    courseEndTime1 = itemStrEndTime["endTime$endTIme"]!!.let {
+                                        (firstWeek.clone() as Calendar).apply {
+                                            add(Calendar.DATE, (strWeek - 1) * 7)
+                                            set(
+                                                Calendar.DAY_OF_WEEK,
+                                                startTime.get(Calendar.DAY_OF_WEEK)
+                                            )
+                                            set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
+                                            set(Calendar.MINUTE, it[Calendar.MINUTE])
+                                        }
+                                    }.time,
+                                    strWeek = strWeek,
+                                    lastWeek = lastWeek,
+                                    info = alertAddCourseBinding.courseInfo.text.toString(),
+                                    location = alertAddCourseBinding.location.text.toString()
+                                ), this@WeekFragment.handler
+                            )
+                        }
                         .setNegativeButton("否", null)
                         .show()
                 }
@@ -386,9 +413,5 @@ class WeekFragment : Fragment() {
                 7
             else
                 1
-    }
-
-    private fun refreshData() {
-        (this.context as CourseScheduleActivity).refreshData(handler)
     }
 }

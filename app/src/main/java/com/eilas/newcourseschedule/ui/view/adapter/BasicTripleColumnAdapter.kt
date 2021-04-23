@@ -7,12 +7,22 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.eilas.newcourseschedule.R
 
-class BasicTripleColumnAdapter(val dataList: List<Triple<String, String, String>>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class BasicTripleColumnAdapter(
+    val dataList: List<Triple<String, String, String>>,
+    val longClickMethod: ((String, Long) -> Boolean)?
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val textView5 = view.findViewById<TextView>(R.id.textView5)
         val textView6 = view.findViewById<TextView>(R.id.textView6)
         val textView7 = view.findViewById<TextView>(R.id.textView7)
+
+        init {
+            if (longClickMethod != null) {
+                view.setOnLongClickListener {
+                    longClickMethod.invoke(textView5.text.toString(),System.currentTimeMillis())
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(

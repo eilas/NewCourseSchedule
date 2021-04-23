@@ -1,10 +1,10 @@
-package com.eilas.newcourseschedule.ui.login
+package com.eilas.newcourseschedule.data
 
 import android.content.Context
 import android.view.View
-import com.eilas.newcourseschedule.data.login
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.model.User
+import com.eilas.newcourseschedule.ui.LoginActivity
 import com.google.android.material.snackbar.Snackbar
 
 fun saveUser(context: Context, user: LoggedInUser) {

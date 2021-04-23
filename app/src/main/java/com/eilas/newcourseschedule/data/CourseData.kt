@@ -38,7 +38,7 @@ fun getAllCourse(user: LoggedInUser, thisWeek: Int, handler: Handler) {
                 // TODO: 2021/2/9 考虑单双周
 //                Log.i("response", response.body?.string())
                 val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-                JsonParser().parse(response.body?.string()).asJsonArray.forEach {
+                JsonParser().parse(response.body?.string().apply { Log.i("all course",this) }).asJsonArray.forEach {
                     courseList.add(it.asJsonObject.let {
                         CourseInfo(
                             it["name"].asString,
@@ -211,13 +211,13 @@ fun dropCourse(user: LoggedInUser, course: CourseInfo, handler: Handler) {
             ).url("${httpHelper.url}/course?action=drop").build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                TODO("Not yet implemented")
+
             }
 
             override fun onResponse(call: Call, response: Response) {
                 Log.i("dropCourse response", response.body?.string())
 
-                handler.sendMessage(Message.obtain().apply { what = 99 })
+                handler.sendMessage(Message.obtain().apply { what = 5 })
             }
 
         })

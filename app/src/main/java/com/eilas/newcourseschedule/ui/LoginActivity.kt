@@ -1,4 +1,4 @@
-package com.eilas.newcourseschedule.ui.login
+package com.eilas.newcourseschedule.ui
 
 import android.content.DialogInterface
 import android.content.Intent
@@ -16,8 +16,8 @@ import com.eilas.newcourseschedule.data.model.User
 import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
 import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
-import com.eilas.newcourseschedule.service.CourseStartRemindService
-import com.eilas.newcourseschedule.ui.schedule.CourseScheduleActivity
+import com.eilas.newcourseschedule.data.autoLogin
+import com.eilas.newcourseschedule.data.saveUser
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
 

@@ -33,9 +33,12 @@
         </receiver>
 
         <activity
-            android:name=".ui.schedule.CourseScheduleActivity"
+            android:name=".ui.CommunicationActivity"
+            android:label="课程互动" />
+        <activity
+            android:name=".ui.CourseScheduleActivity"
             android:label="课程表" />
-        <activity android:name=".ui.login.LoginActivity">
+        <activity android:name=".ui.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -16,7 +16,6 @@ import java.io.IOException
 
 fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
     Thread {
-
         val httpHelper = HttpHelpers.obtain()
 
         httpHelper.okHttpClient.newCall(
@@ -32,13 +31,6 @@ fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
             override fun onResponse(call: Call, response: Response) {
                 val classmateList = JsonParser().parse(response.body?.string()).asJsonArray.map {
                     it.asJsonObject.let {
-/*
-                        OtherUser(
-                            it["id"].asString,
-                            it["name"].asString,
-                            if (it["sex"].asString.equals(User.Sex.MALE)) User.Sex.MALE else User.Sex.FEMALE
-                        )
-*/
                         Triple(
                             it["id"].asString,
                             it["name"].asString,
@@ -46,7 +38,6 @@ fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
                                     .equals(User.Sex.MALE)
                             ) "男" else "女"
                         )
-
                     }
                 }
 
@@ -59,4 +50,48 @@ fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
 
         httpHelper.recycle()
     }.start()
+}
+
+fun sendNotifyToClassmate(
+    fromUserId: String,
+    toUserId: String,
+    fromUserName: String,
+    time: Long,
+    courseName: String,
+    handler: Handler
+) {
+    Thread {
+        val httpHelper = HttpHelpers.obtain()
+
+        httpHelper.okHttpClient.newCall(
+            Request.Builder().post(
+                Gson().toJson(
+                    mapOf(
+                        "fromUserId" to fromUserId,
+                        "toUserId" to toUserId,
+                        "fromUserName" to fromUserName,
+                        "time" to time,
+                        "courseName" to courseName
+                    )
+                ).toRequestBody("application/json".toMediaTypeOrNull())
+            ).url("${httpHelper.url}/notify").build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                println(response.body?.string())
+                handler.sendMessage(Message.obtain().apply {
+                    what = 99
+                })
+            }
+        })
+
+        httpHelper.recycle()
+    }.start()
+}
+
+fun receiveNotify() {
+
 }

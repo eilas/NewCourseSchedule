@@ -1,6 +1,7 @@
-package com.eilas.newcourseschedule.ui.schedule
+package com.eilas.newcourseschedule.ui
 
 import android.content.*
+import android.graphics.*
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
@@ -26,7 +27,6 @@ import com.eilas.newcourseschedule.service.CourseStartRemindService
 import com.eilas.newcourseschedule.ui.view.WeekFragment
 import java.lang.ref.WeakReference
 import java.util.*
-import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 
 // TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交
@@ -49,6 +49,12 @@ class CourseScheduleActivity : AppCompatActivity() {
                 }
 //                init service
                 initService(it.obj as ArrayList<CourseInfo>)
+
+                Log.i("all course", (it.obj as ArrayList<CourseInfo>).toString())
+            }
+            2 -> {
+//                响应推送消息
+                Toast.makeText(this, it.obj as String, Toast.LENGTH_SHORT).show()
             }
         }
         true
@@ -65,7 +71,7 @@ class CourseScheduleActivity : AppCompatActivity() {
         user = intent.extras?.getParcelable<LoggedInUser>("user")!!
 
         initView()
-
+        initMQ(user.id)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -252,8 +258,6 @@ class CourseScheduleActivity : AppCompatActivity() {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                     (service as CourseStartRemindService.CourseListBinder).apply {
                         if (this.courseList == null) this.courseList = courseList
-                        this.courseDuration =
-                            TimeUnit.MILLISECONDS.toMinutes(itemStrEndTime["endTime0"]?.time!!.time - itemStrEndTime["strTime0"]?.time!!.time)
                         this.dayStartTime = Calendar.getInstance().apply {
                             itemStrEndTime["strTime0"]!!.let {
                                 set(Calendar.HOUR_OF_DAY, it[Calendar.HOUR_OF_DAY])
@@ -272,9 +276,17 @@ class CourseScheduleActivity : AppCompatActivity() {
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
-
+                    Log.i("CourseScheduleActivity", "service disconnected")
+//                    stopService(it)
                 }
             }, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    fun initMQ(userId: String) {
+        MQHelpers.apply {
+            init(userId)
+            connect("notify/$userId", handler)
         }
     }
 }

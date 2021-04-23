@@ -17,4 +17,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+<!--
+    <com.jidcoo.android.widget.commentview.view.RoundAngleImageView
+        android:id="@+id/user_ico"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/f7eed6"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:roundHeight="18dp"
+        app:roundWidth="18dp" />
+-->
 </androidx.constraintlayout.widget.ConstraintLayout>

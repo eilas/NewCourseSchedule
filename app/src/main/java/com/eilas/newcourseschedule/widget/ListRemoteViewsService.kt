@@ -12,7 +12,7 @@ import com.eilas.newcourseschedule.data.getDayCourse
 import com.eilas.newcourseschedule.data.getThisWeek
 import com.eilas.newcourseschedule.data.loadFirstWeek
 import com.eilas.newcourseschedule.data.model.CourseInfo
-import com.eilas.newcourseschedule.ui.login.loadUser
+import com.eilas.newcourseschedule.data.loadUser
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*

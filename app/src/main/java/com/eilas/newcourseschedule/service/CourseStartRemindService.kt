@@ -1,5 +1,6 @@
 package com.eilas.newcourseschedule.service
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -12,11 +13,47 @@ import androidx.core.app.NotificationCompat
 import androidx.work.*
 import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.model.CourseInfo
+import com.google.gson.Gson
+import java.io.*
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class CourseStartRemindService : Service() {
-    private val courseListBinder = CourseListBinder()
+    companion object {
+        lateinit var courseListBinder: CourseListBinder
+
+        fun writeCourseListBinder(context: Context): Boolean {
+            try {
+                context.openFileOutput("courseListBinder",Context.MODE_PRIVATE).apply {
+                    write(Gson().toJson(courseListBinder).toByteArray())
+                    flush()
+                    close()
+                }
+            } catch (e: IOException) {
+                return false
+            }
+            return true
+        }
+
+        fun readCourseListBinder(context: Context): Boolean {
+            try {
+                context.openFileInput("courseListBinder").apply {
+                    courseListBinder =
+                        Gson().fromJson(reader().readText(), CourseListBinder::class.java)
+                    close()
+                }
+            } catch (e: IOException) {
+                return false
+            }
+            return true
+        }
+
+    }
+
+    init {
+        courseListBinder = CourseListBinder()
+    }
 
     inner class CourseListBinder : Binder() {
         var courseList: List<CourseInfo>? = null
@@ -28,18 +65,19 @@ class CourseStartRemindService : Service() {
                     field = value
                 }
             }
-        var courseDuration: Long = 15
         var dayStartTime: Calendar? = null
         var dayEndTime: Calendar? = null
+
         fun getTodayNextCourse(): CourseInfo? {
             val now = Calendar.getInstance()
             return kotlin.runCatching {
-                courseListBinder.courseList!!.first {
+                courseList!!.first {
                     it.courseStrTime1.day + 1 == now.get(Calendar.DAY_OF_WEEK) && Calendar.getInstance()
                         .apply {
                             time = it.courseStrTime1
                             set(now[Calendar.YEAR], now[Calendar.MONTH], now[Calendar.DATE])
-                        }.after(now) || it.courseStrTime2?.let {
+                        }.after(now)
+                            || it.courseStrTime2?.let {
                         it.day + 1 == now.get(Calendar.DAY_OF_WEEK) && Calendar.getInstance()
                             .apply {
                                 time = it
@@ -47,27 +85,37 @@ class CourseStartRemindService : Service() {
                             }.after(now)
                     } ?: false
                 }
-            }.getOrNull().also { Log.i("CourseStartRemindService", it.toString()) }
+            }.getOrNull().also { Log.i("CourseStartRemindService_NextCourse", it.toString()) }
         }
     }
 
-    inner class RemindWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
+    class RemindWorker(val context: Context, params: WorkerParameters) : Worker(context, params) {
+        @SuppressLint("RestrictedApi")
         override fun doWork(): Result {
-            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
-                1, NotificationCompat.Builder(this@CourseStartRemindService, "0")
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
+                1,
+                NotificationCompat.Builder(context, "0")
                     .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle("课前提醒")
                     .setContentText("课程\"${inputData.getString("name")}\"即将开始").build()
             )
 
             val now = Calendar.getInstance()
             var todayNextCourseStrName: String = ""
-            val todayNextCourseStrTime = courseListBinder.getTodayNextCourse()
-                ?.also { todayNextCourseStrName = it.courseName }?.let {
+            val todayNextCourseStrTime =
+                kotlin.runCatching {
+                    courseListBinder.getTodayNextCourse()
+                }.onFailure {
+                    readCourseListBinder(context)
+                }.getOrElse {
+                    courseListBinder.getTodayNextCourse()
+                }?.let {
+                    todayNextCourseStrName = it.courseName
                     if (it.courseStrTime1.day == now.get(Calendar.DAY_OF_WEEK))
                         it.courseStrTime1
                     else
                         it.courseStrTime2
                 }
+
 
             todayNextCourseStrTime?.apply {
                 val remindWorkerRequest = OneTimeWorkRequestBuilder<RemindWorker>().setInitialDelay(
@@ -77,16 +125,15 @@ class CourseStartRemindService : Service() {
                 ).setInputData(Data.Builder().putString("name", todayNextCourseStrName).build())
                     .build()
 
-                WorkManager.getInstance(this@CourseStartRemindService).enqueue(remindWorkerRequest)
+                WorkManager.getInstance(context).enqueue(remindWorkerRequest)
             }
-
 
             return Result.success()
         }
     }
 
-    inner class WatchDogWorker(context: Context, params: WorkerParameters) :
-        Worker(context, params) {
+    class WatchDogWorker(val context: Context, params: WorkerParameters) : Worker(context, params) {
+        @SuppressLint("RestrictedApi")
         override fun doWork(): Result {
             val now = Calendar.getInstance()
             val nextDay = Calendar.getInstance().let {
@@ -100,24 +147,36 @@ class CourseStartRemindService : Service() {
             }
 
             var todayNextCourseStrName: String = ""
-            val todayNextCourseStrTime = courseListBinder.getTodayNextCourse()
-                ?.also { todayNextCourseStrName = it.courseName }?.let {
+            val todayNextCourseStrTime =
+                kotlin.runCatching {
+                    courseListBinder.getTodayNextCourse()
+                }.onFailure {
+                    readCourseListBinder(context)
+                }.getOrElse {
+                    courseListBinder.getTodayNextCourse()
+                }?.let {
+                    todayNextCourseStrName = it.courseName
                     if (it.courseStrTime1.day == now.get(Calendar.DAY_OF_WEEK))
                         it.courseStrTime1
                     else
                         it.courseStrTime2
-                }!!
-            val remindWorkerRequest = OneTimeWorkRequestBuilder<RemindWorker>().setInitialDelay(
-//                提醒时间课前10min
-                todayNextCourseStrTime.time - now.timeInMillis - 600000, TimeUnit.MILLISECONDS
-            ).setInputData(Data.Builder().putString("name", todayNextCourseStrName).build()).build()
+                }
+
+            val remindWorkerRequest = todayNextCourseStrTime?.let {
+                OneTimeWorkRequestBuilder<RemindWorker>().setInitialDelay(
+//                    提醒时间课前10min
+                    it.time - now.timeInMillis - 600000, TimeUnit.MILLISECONDS
+                ).setInputData(Data.Builder().putString("name", todayNextCourseStrName).build())
+                    .build()
+            }
+
 
             val watchDogWorkerRequest = OneTimeWorkRequestBuilder<WatchDogWorker>().setInitialDelay(
                 nextDay.timeInMillis - now.timeInMillis, TimeUnit.MILLISECONDS
             ).build()
 
-            WorkManager.getInstance(this@CourseStartRemindService).apply {
-                enqueue(remindWorkerRequest)
+            WorkManager.getInstance(context).apply {
+                remindWorkerRequest?.let { enqueue(it) }
                 enqueue(watchDogWorkerRequest)
             }
             return Result.success()
@@ -136,8 +195,22 @@ class CourseStartRemindService : Service() {
         super.onCreate()
     }
 
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.i("CourseStartRemindService", "unbind")
+        return super.onUnbind(intent)
+    }
+
+    override fun onDestroy() {
+        Log.i("CourseStartRemindService", "destroy")
+//        将courseListBinder写入本地文件
+        writeCourseListBinder(this)
+        super.onDestroy()
+    }
+
+    @SuppressLint("RestrictedApi")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i("CourseStartRemindService", "start")
+//        WorkManager.getInstance(this).cancelAllWork()
 
         val now = Calendar.getInstance()
         val watchDogWorkRequest = OneTimeWorkRequestBuilder<WatchDogWorker>().setInitialDelay(
@@ -154,30 +227,66 @@ class CourseStartRemindService : Service() {
         if (now.after(courseListBinder.dayStartTime) && now.before(courseListBinder.dayEndTime)) {
 //            位于可能有课的时间，需要执行RemindWorker
             Log.i("CourseStartRemindService", "both RemindWorker WatchDogWorker")
-            var todayNextCourseStrName: String = ""
-            val todayNextCourseStrTime = courseListBinder.getTodayNextCourse()
-                ?.also { todayNextCourseStrName = it.courseName }?.let {
-                    if (it.courseStrTime1.day == now.get(Calendar.DAY_OF_WEEK))
-                        it.courseStrTime1
-                    else
-                        it.courseStrTime2
-                }
+            var todayNextCourseName: String = ""
+            val todayNextCourseStrTime = courseListBinder.getTodayNextCourse()?.let {
+                todayNextCourseName = it.courseName
+                if (it.courseStrTime1.day == now.get(Calendar.DAY_OF_WEEK))
+                    it.courseStrTime1
+                else
+                    it.courseStrTime2
+            }
 
             todayNextCourseStrTime?.apply {
                 WorkManager.getInstance(this@CourseStartRemindService).enqueue(
                     OneTimeWorkRequestBuilder<RemindWorker>().setInitialDelay(
                         time - now.timeInMillis - 600000,
                         TimeUnit.MILLISECONDS
-                    ).setInputData(Data.Builder().putString("name", todayNextCourseStrName).build())
+                    ).setInputData(Data.Builder().putString("name", todayNextCourseName).build())
                         .build()
                 )
             }
         } else {
             Log.i("CourseStartRemindService", "only WatchDogWorker")
         }
+
 //        无论是今天还是明天，WatchDogWorker总会执行
         WorkManager.getInstance(this).enqueue(watchDogWorkRequest)
 
+/*
+        WorkManager.getInstance(this).enqueue(
+            PeriodicWorkRequestBuilder<Test>(60, TimeUnit.MINUTES).build()
+        )
+*/
+
+
         return super.onStartCommand(intent, flags, startId)
+    }
+
+
+    /**
+     * test
+     */
+    class Test(val context: Context, params: WorkerParameters) : Worker(context, params) {
+        override fun doWork(): Result {
+            val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().time)
+            (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(
+                1, NotificationCompat.Builder(context, "0")
+                    .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle("TEST")
+                    .setContentText("时间$time")
+                    .build()
+            )
+            val edit = context.getSharedPreferences("ServiceStatus", Context.MODE_PRIVATE).edit()
+            kotlin.runCatching {
+                println(courseListBinder.getTodayNextCourse())
+            }.onSuccess {
+                edit.putString(time, "notify运行了,courseListBinder也能访问")
+            }.onFailure {
+                val s: StringBuilder = StringBuilder("notify运行了\n${it}")
+                it.stackTrace.forEach { s.append("\n   at $it") }
+                edit.putString(time, s.toString())
+            }
+            edit.commit()
+            return Result.success()
+        }
     }
 }

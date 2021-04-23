@@ -1,5 +1,8 @@
 package com.eilas.newcourseschedule.data.model
 
-import java.util.*
+import com.jidcoo.android.widget.commentview.defaults.DefaultCommentModel
 
-data class ChatMessage(val from: String, val to: String, val data: String, val date: Date)
+
+data class CommentMessage(val any: Any? = null) : DefaultCommentModel.Comment()
+
+data class ReplyMessage(val any: Any? = null) : DefaultCommentModel.Comment.Reply()

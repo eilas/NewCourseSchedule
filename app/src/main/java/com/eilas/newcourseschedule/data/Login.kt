@@ -5,8 +5,7 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Message
 import com.eilas.newcourseschedule.data.model.LoggedInUser
-import com.eilas.newcourseschedule.ui.login.LoginActivity
-import com.eilas.newcourseschedule.ui.login.deleteUser
+import com.eilas.newcourseschedule.ui.LoginActivity
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import okhttp3.Call
