@@ -54,6 +54,7 @@ class CourseScheduleActivity : AppCompatActivity() {
             }
             2 -> {
 //                响应推送消息
+                Log.i("推送", it.obj as String)
                 Toast.makeText(this, it.obj as String, Toast.LENGTH_SHORT).show()
             }
         }
