@@ -14,7 +14,6 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
     init {
         val resources = context.resources
         val packageName = context.packageName
-        println(packageName)
         colorList.apply {
             for (i in 1..16) {
                 add(
@@ -49,6 +48,9 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
             add(resources.getColor(R.color.course_color_16))
 */
         }
+        val stringBuilder = StringBuilder("")
+        colorList.forEach { stringBuilder.append("$it,") }
+        Log.i("CourseItemColor_AllColor", stringBuilder.toString())
     }
 
     fun bindColor() {
@@ -67,7 +69,9 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
         apply()
     }
 
-//    删除/新增课程时都会调用refresh回收/分配颜色
+    /**
+     * 删除/新增课程时都会调用refresh回收/分配颜色
+     */
     fun refresh() {
         val weekViewEventIdSet = HashSet<String>()
         weekViewEventList.mapNotNullTo(weekViewEventIdSet, { it.id })
@@ -92,9 +96,13 @@ class CourseItemColorAdapter(val context: Context, val weekViewEventList: List<W
     }
 
     private fun apply() {
+        val stringBuilder = StringBuilder("")
         weekViewEventList.forEach {
             it.color = colorMap[it.id]!!
+
+            stringBuilder.append("${it.name}:${it.color}  ")
         }
+        Log.i("CourseItemColor_UsedColor", stringBuilder.toString())
 //        colorMap.forEach { (event, color) -> event.color = color }
     }
 }

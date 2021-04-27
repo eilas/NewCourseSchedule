@@ -25,4 +25,11 @@
             android:id="@+id/logout"
             android:title="登出" />
     </group>
+    <group
+        android:id="@+id/debug_group"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/getWork"
+            android:title="查看WorkManager任务" />
+    </group>
 </menu>

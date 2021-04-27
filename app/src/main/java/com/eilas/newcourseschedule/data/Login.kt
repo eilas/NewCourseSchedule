@@ -33,7 +33,6 @@ fun login(user: LoggedInUser,handler: Handler) {
 
             override fun onResponse(call: Call, response: Response) {
 //                区分登录情况
-//                Log.i("response", response.body?.string())
                 JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
                     handler.sendMessage(Message.obtain().apply {
                         when (it) {

@@ -86,11 +86,13 @@ class WeekFragment : Fragment() {
                     notifyDataSetChanged()
                 }
             }
-
             5 -> {
-                // TODO: 2021/4/23  通知CourseStartRemindService课程改变
-
-
+//                删除课程后，通知CourseStartRemindService课程改变
+                ((context as CourseScheduleActivity).supportFragmentManager.findFragmentById(R.id.weekFragment) as WeekFragment).handler.sendMessage(
+                    Message.obtain().apply { what = 99 })
+            }
+            99 -> {
+                (activity as CourseScheduleActivity).remindService.notifyDataListChanged()
             }
         }
         true
@@ -185,7 +187,7 @@ class WeekFragment : Fragment() {
                                     )
                                     return@let it[event.id]
                                 }
-                            })
+                            }, null)
 
                             tempAdapter = adapter
 

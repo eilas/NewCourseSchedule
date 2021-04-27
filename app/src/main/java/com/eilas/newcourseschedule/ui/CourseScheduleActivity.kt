@@ -15,6 +15,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkManager
 import com.eilas.newcourseschedule.R
 import com.eilas.newcourseschedule.data.*
 import com.eilas.newcourseschedule.data.model.CourseInfo
@@ -25,8 +28,10 @@ import com.eilas.newcourseschedule.databinding.AlertCourseCountDayBinding
 import com.eilas.newcourseschedule.databinding.AlertCourseTimePickerBinding
 import com.eilas.newcourseschedule.service.CourseStartRemindService
 import com.eilas.newcourseschedule.ui.view.WeekFragment
+import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
 import java.lang.ref.WeakReference
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 // TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交
@@ -35,6 +40,7 @@ class CourseScheduleActivity : AppCompatActivity() {
     lateinit var user: LoggedInUser
     lateinit var firstWeek: Calendar
     lateinit var itemStrEndTime: Map<String, Calendar>
+    lateinit var remindService: CourseStartRemindService.CourseListBinder
     private lateinit var activityCourseScheduleBinding: ActivityCourseScheduleBinding
     private lateinit var alertCalendarBinding: AlertCalendarBinding
     private lateinit var alertCourseCountDayBinding: AlertCourseCountDayBinding
@@ -44,13 +50,14 @@ class CourseScheduleActivity : AppCompatActivity() {
         when (it.what) {
             1 -> {
 //                init WeekFragment
+                val courseList = it.obj as ArrayList<CourseInfo>
                 supportFragmentManager.findFragmentById(R.id.weekFragment).apply {
-                    (this as WeekFragment).initView(it.obj as ArrayList<CourseInfo>, firstWeek)
+                    (this as WeekFragment).initView(courseList, firstWeek)
                 }
 //                init service
-                initService(it.obj as ArrayList<CourseInfo>)
+                initService(courseList)
 
-                Log.i("all course", (it.obj as ArrayList<CourseInfo>).toString())
+                Log.i("all course", courseList.toString())
             }
             2 -> {
 //                响应推送消息
@@ -123,6 +130,22 @@ class CourseScheduleActivity : AppCompatActivity() {
                 R.id.setItemStrEndTime -> setItemStrEndTime()
 //                登出
                 R.id.logout -> logout(this)
+
+                R.id.getWork -> {
+                    AlertDialog.Builder(this).setTitle("查看WorkManager任务")
+                        .setView(RecyclerView(this).apply {
+                            layoutManager = LinearLayoutManager(context).apply {
+                                orientation = LinearLayoutManager.VERTICAL
+                            }
+                            adapter =
+                                BasicDoubleColumnAdapter(ArrayList<Pair<String, String>>().apply {
+                                    val instance =
+                                        WorkManager.getInstance(this@CourseScheduleActivity)
+                                    add("看门狗" to instance.getWorkInfosByTagLiveData("看门狗").value.toString())
+                                    add("课前提醒" to instance.getWorkInfosByTagLiveData("课前提醒").value.toString())
+                                }, null)
+                        }).show()
+                }
             }
             true
         }
@@ -273,6 +296,8 @@ class CourseScheduleActivity : AppCompatActivity() {
                         }
 //                        bind service成功后start service
                         startService(it)
+
+                        remindService = this
                     }
                 }
 
@@ -282,6 +307,7 @@ class CourseScheduleActivity : AppCompatActivity() {
                 }
             }, Context.BIND_AUTO_CREATE)
         }
+
     }
 
     fun initMQ(userId: String) {

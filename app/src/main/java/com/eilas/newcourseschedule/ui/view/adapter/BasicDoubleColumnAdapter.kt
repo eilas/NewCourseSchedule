@@ -7,11 +7,22 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.eilas.newcourseschedule.R
 
-class BasicDoubleColumnAdapter(val dataList: List<Pair<String, String>>) :
+class BasicDoubleColumnAdapter(
+    val dataList: List<Pair<String, String>>,
+    val longClickMethod: (() -> Boolean)?
+) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val textView3 = view.findViewById<TextView>(R.id.textView3)
         val textView4 = view.findViewById<TextView>(R.id.textView4)
+
+        init {
+            if (longClickMethod != null) {
+                view.setOnLongClickListener {
+                    longClickMethod.invoke()
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(
