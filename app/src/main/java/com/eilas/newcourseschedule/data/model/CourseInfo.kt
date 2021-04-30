@@ -16,16 +16,12 @@ data class CourseInfo(
     val location: String,
     val id: String = ""
 ) {
-/*
-    override fun toString(): String {
-        val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-        return "CourseInfo(courseName=$courseName, courseStrTime1=${
-            simpleDateFormat.format(courseStrTime1)
-        }, courseEndTime1=${simpleDateFormat.format(courseEndTime1)}, courseStrTime2=${
-            courseStrTime2?.let { simpleDateFormat.format(it) }
-        }, courseEndTime2=${courseEndTime2?.let { simpleDateFormat.format(it) }}, strWeek=$strWeek, lastWeek=$lastWeek, info=$info)"
-    }
-*/
+    fun getCourseStrTimeToday(): Date? =
+        when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
+            courseStrTime1.day + 1 -> courseStrTime1
+            courseStrTime2 ?: Int.MIN_VALUE + 1 -> courseStrTime2
+            else -> null
+        }
 }
 
 fun main() {

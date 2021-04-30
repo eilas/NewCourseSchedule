@@ -109,10 +109,7 @@ class CourseStartRemindService : Service() {
             var todayNextCourseName: String = ""
             val todayNextCourseStrTime = getTodayNextCourse()?.let {
                 todayNextCourseName = it.courseName
-                if (it.courseStrTime1.day + 1 == now.get(Calendar.DAY_OF_WEEK))
-                    it.courseStrTime1
-                else
-                    it.courseStrTime2
+                it.getCourseStrTimeToday()
             }
 
             WorkManager.getInstance(this@CourseStartRemindService).apply {
@@ -162,10 +159,7 @@ class CourseStartRemindService : Service() {
                     courseListBinder.getTodayNextCourse()
                 }?.let {
                     todayNextCourseStrName = it.courseName
-                    if (it.courseStrTime1.day + 1 == now.get(Calendar.DAY_OF_WEEK))
-                        it.courseStrTime1
-                    else
-                        it.courseStrTime2
+                    it.getCourseStrTimeToday()
                 }
 
 
@@ -185,11 +179,12 @@ class CourseStartRemindService : Service() {
                 write(
                     "${simpleDateFormat.format(now.time)} ~ 提醒服务运行，下一次预计时间${
                         todayNextCourseStrTime?.let {
-                            simpleDateFormat.format(
-                                it
-                            )
+                            simpleDateFormat.format(Calendar.getInstance().apply {
+                                time = it
+                                add(Calendar.MINUTE, -10)
+                            }.time)
                         }
-                    }".toByteArray()
+                    }\n".toByteArray()
                 )
                 flush()
                 close()
@@ -222,10 +217,7 @@ class CourseStartRemindService : Service() {
                     courseListBinder.getTodayNextCourse()
                 }?.let {
                     todayNextCourseStrName = it.courseName
-                    if (it.courseStrTime1.day + 1 == now.get(Calendar.DAY_OF_WEEK))
-                        it.courseStrTime1
-                    else
-                        it.courseStrTime2
+                    it.getCourseStrTimeToday()
                 }
 
             val remindWorkerRequest = todayNextCourseStrTime?.let {
@@ -253,7 +245,7 @@ class CourseStartRemindService : Service() {
                         simpleDateFormat.format(
                             nextDay
                         )
-                    }".toByteArray()
+                    }\n".toByteArray()
                 )
                 flush()
                 close()
@@ -297,10 +289,7 @@ class CourseStartRemindService : Service() {
             var todayNextCourseName: String = ""
             val todayNextCourseStrTime = courseListBinder.getTodayNextCourse()?.let {
                 todayNextCourseName = it.courseName
-                if (it.courseStrTime1.day + 1 == now.get(Calendar.DAY_OF_WEEK))
-                    it.courseStrTime1
-                else
-                    it.courseStrTime2
+                it.getCourseStrTimeToday()
             }
 
             todayNextCourseStrTime?.apply {
@@ -319,8 +308,6 @@ class CourseStartRemindService : Service() {
 //        无论是今天还是明天，WatchDogWorker总会执行
         WorkManager.getInstance(this).enqueue(watchDogWorkRequest)
 
-        Log.i("看门狗", WorkManager.getInstance(this).getWorkInfosByTagLiveData("看门狗").toString())
-        Log.i("课前提醒", WorkManager.getInstance(this).getWorkInfosByTagLiveData("课前提醒").toString())
 /*
         WorkManager.getInstance(this).enqueue(
             PeriodicWorkRequestBuilder<Test>(60, TimeUnit.MINUTES).build()

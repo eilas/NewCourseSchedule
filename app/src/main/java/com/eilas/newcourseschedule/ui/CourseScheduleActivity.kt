@@ -1,5 +1,6 @@
 package com.eilas.newcourseschedule.ui
 
+import android.appwidget.AppWidgetManager
 import android.content.*
 import android.graphics.*
 import android.os.Bundle
@@ -31,7 +32,6 @@ import com.eilas.newcourseschedule.ui.view.WeekFragment
 import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
 import java.lang.ref.WeakReference
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 // TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交

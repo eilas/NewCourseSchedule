@@ -29,6 +29,7 @@ import com.eilas.newcourseschedule.ui.CourseScheduleActivity
 import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.BasicTripleColumnAdapter
 import com.eilas.newcourseschedule.ui.view.adapter.CourseItemColorAdapter
+import com.eilas.newcourseschedule.widget.DesktopWidgetProvider
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
 import java.util.*
@@ -92,7 +93,13 @@ class WeekFragment : Fragment() {
                     Message.obtain().apply { what = 99 })
             }
             99 -> {
+//                更新CourseStartRemindService数据
                 (activity as CourseScheduleActivity).remindService.notifyDataListChanged()
+//                更新ListRemoteViewsService数据（如果有的话）
+                context?.sendBroadcast(
+                    Intent().setPackage(context!!.packageName)
+                        .setAction(DesktopWidgetProvider.ACTION_DATASET_UPDATE)
+                )
             }
         }
         true
