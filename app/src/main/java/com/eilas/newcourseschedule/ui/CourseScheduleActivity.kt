@@ -1,6 +1,5 @@
 package com.eilas.newcourseschedule.ui
 
-import android.appwidget.AppWidgetManager
 import android.content.*
 import android.graphics.*
 import android.os.Bundle
@@ -16,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkManager
@@ -30,17 +30,18 @@ import com.eilas.newcourseschedule.databinding.AlertCourseTimePickerBinding
 import com.eilas.newcourseschedule.service.CourseStartRemindService
 import com.eilas.newcourseschedule.ui.view.WeekFragment
 import com.eilas.newcourseschedule.ui.view.adapter.BasicDoubleColumnAdapter
+import com.eilas.newcourseschedule.ui.view.adapter.BasicTripleColumnAdapter
 import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.collections.HashMap
 
-// TODO: 2021/2/12 需要设定第一周 ，关联日期，查询时提交
 class CourseScheduleActivity : AppCompatActivity() {
 
     lateinit var user: LoggedInUser
     lateinit var firstWeek: Calendar
     lateinit var itemStrEndTime: Map<String, Calendar>
     lateinit var remindService: CourseStartRemindService.CourseListBinder
+    val infoList = ArrayList<Triple<String, String, String>>()
     private lateinit var activityCourseScheduleBinding: ActivityCourseScheduleBinding
     private lateinit var alertCalendarBinding: AlertCalendarBinding
     private lateinit var alertCourseCountDayBinding: AlertCourseCountDayBinding
@@ -61,8 +62,15 @@ class CourseScheduleActivity : AppCompatActivity() {
             }
             2 -> {
 //                响应推送消息
-                Log.i("推送", it.obj as String)
-                Toast.makeText(this, it.obj as String, Toast.LENGTH_SHORT).show()
+                val mutableList = it.obj as MutableList<String>
+                Toast.makeText(this, mutableList.removeFirst(), Toast.LENGTH_SHORT).show()
+                infoList.add(
+                    Triple(
+                        mutableList.component1(),
+                        mutableList.component2(),
+                        mutableList.component3()
+                    )
+                )
             }
         }
         true
@@ -128,6 +136,19 @@ class CourseScheduleActivity : AppCompatActivity() {
                 R.id.setFirstWeek -> setFirstWeek()
 //                设置课节数及上课时间
                 R.id.setItemStrEndTime -> setItemStrEndTime()
+//                信息列表
+                R.id.infoList -> {
+                    AlertDialog.Builder(this).setTitle("信息列表")
+                        .setView(RecyclerView(this).apply {
+                            layoutManager = LinearLayoutManager(context).apply {
+                                orientation = LinearLayoutManager.VERTICAL
+                            }
+                            adapter = BasicTripleColumnAdapter(infoList, null)
+                            addItemDecoration(
+                                DividerItemDecoration(this.context, DividerItemDecoration.VERTICAL)
+                            )
+                        }).show()
+                }
 //                登出
                 R.id.logout -> logout(this)
 

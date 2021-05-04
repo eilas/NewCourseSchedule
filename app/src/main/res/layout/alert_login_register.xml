@@ -4,12 +4,17 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <EditText
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/text_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="姓名"
-        android:inputType="text" />
+        android:inputType="text">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="姓名" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <RadioGroup
         android:id="@+id/group_sex"

@@ -16,7 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 
-fun login(user: LoggedInUser,handler: Handler) {
+fun login(user: LoggedInUser, handler: Handler) {
     Thread {
         val gson = Gson()
         val httpHelper = HttpHelpers.obtain()
@@ -33,10 +33,14 @@ fun login(user: LoggedInUser,handler: Handler) {
 
             override fun onResponse(call: Call, response: Response) {
 //                区分登录情况
-                JsonParser().parse(response.body?.string()).asJsonObject.get("result").asString.let {
+                val jsonObject = JsonParser().parse(response.body?.string()).asJsonObject
+                jsonObject["result"].asString.let {
                     handler.sendMessage(Message.obtain().apply {
                         when (it) {
-                            "OK" -> what = 3
+                            "OK" -> {
+                                what = 3
+                                obj = jsonObject["name"].asString
+                            }
                             "pwdError" -> what = 4
                             "noUser" -> what = 5
                             else -> throw Exception("未知错误")

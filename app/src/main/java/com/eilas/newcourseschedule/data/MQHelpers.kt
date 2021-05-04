@@ -31,17 +31,17 @@ object MQHelpers {
                         }
 
                         override fun messageArrived(p0: String?, p1: MqttMessage?) {
-                            receiveNotify()
-                            println("mqtt consume topic:$p0 message:${p1?.let { String(it.payload) }}")
+                            println(p1?.let { String(it.payload) })
                             handler.sendMessage(Message.obtain().apply {
                                 what = 2
                                 obj = p1?.let {
                                     val jsonObject =
                                         JsonParser().parse(String(it.payload)).asJsonObject
-                                    "${jsonObject["fromUserName"].asString}在${
-                                        SimpleDateFormat("MM-dd HH:mm:ss").format(
-                                            Date().apply { time = jsonObject["time"].asLong })
-                                    }提醒你参加${jsonObject["courseName"].asString}"
+                                    receiveNotify(
+                                        jsonObject["fromUserName"].asString,
+                                        jsonObject["time"].asLong,
+                                        jsonObject["courseName"].asString
+                                    )
                                 }
                             })
                         }

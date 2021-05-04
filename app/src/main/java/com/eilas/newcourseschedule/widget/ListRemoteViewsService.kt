@@ -15,10 +15,12 @@ import com.eilas.newcourseschedule.data.model.CourseInfo
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class ListRemoteViewsService : RemoteViewsService() {
     interface ListRemoteViewsFactory : RemoteViewsFactory {
         fun initData()
+        fun getActiveItem(): String
         fun refresh()
     }
 
@@ -51,7 +53,7 @@ class ListRemoteViewsService : RemoteViewsService() {
                         )
                         Log.i(
                             "widget",
-                            "update app widget dataset finished , count=${todayCourseInfoList.size}"
+                            "update app widget dataset finished , size=${todayCourseInfoList.size}"
                         )
                     }
                 }
@@ -66,8 +68,19 @@ class ListRemoteViewsService : RemoteViewsService() {
                 }
             }
 
+            override fun getActiveItem(): String {
+                val now = Calendar.getInstance()
+                val strTime = Calendar.getInstance()
+                val endTime = Calendar.getInstance()
+                return todayCourseInfoList.firstOrNull {
+                    now.after(strTime.apply { time = it.courseStrTime1 })
+                            && now.before(endTime.apply { time = it.courseEndTime1 })
+                }?.courseName ?:"无"
+            }
+
             override fun refresh() {
                 initData()
+//                getActiveItem()
             }
 
             override fun onCreate() {
@@ -76,6 +89,7 @@ class ListRemoteViewsService : RemoteViewsService() {
             }
 
             override fun onDataSetChanged() {
+
             }
 
             override fun onDestroy() {
@@ -95,25 +109,49 @@ class ListRemoteViewsService : RemoteViewsService() {
                     setTextViewText(R.id.desktop_course_name, courseInfo.courseName)
                     setTextViewText(R.id.desktop_course_location, courseInfo.location)
                     val simpleDateFormat = SimpleDateFormat("HH:mm")
-                    setTextViewText(
-                        R.id.desktop_course_time,
-                        if (courseInfo.courseStrTime1.date == now[Calendar.DATE])
-                            "${simpleDateFormat.format(courseInfo.courseStrTime1)}  ~\n" +
-                                    "      ${simpleDateFormat.format(courseInfo.courseEndTime1)}".also {
-                                        if (now.time.after(courseInfo.courseStrTime1) &&
-                                            now.time.before(courseInfo.courseEndTime1)
-                                        )
-                                            setProgressBar(R.id.progressBar2, 0, 0, true)
-                                    }
-                        else
-                            "${simpleDateFormat.format(courseInfo.courseStrTime2)}  ~\n" +
-                                    "      ${simpleDateFormat.format(courseInfo.courseEndTime2)}".also {
-                                        if (now.time.after(courseInfo.courseStrTime2) &&
-                                            now.time.before(courseInfo.courseEndTime2)
-                                        )
-                                            setProgressBar(R.id.progressBar2, 0, 0, true)
-                                    }
-                    )
+                    if (courseInfo.courseStrTime1.date == now[Calendar.DATE]) {
+                        setTextViewText(
+                            R.id.desktop_course_time,
+                            "${simpleDateFormat.format(courseInfo.courseStrTime1)}\n" + simpleDateFormat.format(
+                                courseInfo.courseEndTime1
+                            )
+                        )
+                        val courseLong = TimeUnit.MINUTES.convert(
+                            courseInfo.courseEndTime1.time - courseInfo.courseStrTime1.time,
+                            TimeUnit.MILLISECONDS
+                        ).toInt()
+                        val courseProgress = TimeUnit.MINUTES.convert(
+                            now.time.time - courseInfo.courseStrTime1.time,
+                            TimeUnit.MILLISECONDS
+                        ).toInt()
+                        setProgressBar(
+                            R.id.desktopProgressBar,
+                            courseLong,
+                            if (courseProgress < 0) 0 else if (courseProgress > courseLong) courseLong else courseProgress,
+                            false
+                        )
+                    } else {
+                        setTextViewText(
+                            R.id.desktop_course_time,
+                            "${simpleDateFormat.format(courseInfo.courseStrTime2)}\n" + simpleDateFormat.format(
+                                courseInfo.courseEndTime2
+                            )
+                        )
+                        val courseLong = TimeUnit.MINUTES.convert(
+                            courseInfo.courseEndTime2!!.time - courseInfo.courseStrTime2!!.time,
+                            TimeUnit.MILLISECONDS
+                        ).toInt()
+                        val courseProgress = TimeUnit.MINUTES.convert(
+                            now.time.time - courseInfo.courseStrTime2.time,
+                            TimeUnit.MILLISECONDS
+                        ).toInt()
+                        setProgressBar(
+                            R.id.desktopProgressBar,
+                            courseLong,
+                            if (courseProgress < 0) 0 else if (courseProgress > courseLong) courseLong else courseProgress,
+                            false
+                        )
+                    }
                 }
             }
 

@@ -5,11 +5,11 @@
     android:orientation="vertical">
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/courseName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/courseName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="课程名称" />
@@ -17,66 +17,70 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/strTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/strTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="开始时间(节)" />
+            android:hint="开始时间(节)"
+            android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/lastTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/lastTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="时长(节)" />
+            android:hint="时长(节)"
+            android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/strWeek"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/strWeek"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="开始周" />
+            android:hint="开始周"
+            android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/lastWeek"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/lastWeek"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="周长" />
+            android:hint="周长"
+            android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="地点" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/courseInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/courseInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="课程备注" />

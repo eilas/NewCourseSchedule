@@ -13,6 +13,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 fun getClassmate(user: LoggedInUser, courseId: String, handler: Handler) {
     Thread {
@@ -82,9 +84,11 @@ fun sendNotifyToClassmate(
 
             override fun onResponse(call: Call, response: Response) {
                 println(response.body?.string())
+/*
                 handler.sendMessage(Message.obtain().apply {
                     what = 99
                 })
+*/
             }
         })
 
@@ -92,6 +96,16 @@ fun sendNotifyToClassmate(
     }.start()
 }
 
-fun receiveNotify() {
-
+/**
+ * 接受消息通知，并返回格式化的消息全体和部分list
+ * @return 格式化的list
+ */
+fun receiveNotify(fromUserName: String, time: Long, courseName: String): MutableList<String> {
+    val formatTime = SimpleDateFormat("MM-dd HH:mm:ss").format(Date().apply { setTime(time) })
+    return mutableListOf(
+        "${fromUserName}在${formatTime}提醒你参加${courseName}",
+        formatTime,
+        fromUserName,
+        "提醒参加$courseName"
+    )
 }

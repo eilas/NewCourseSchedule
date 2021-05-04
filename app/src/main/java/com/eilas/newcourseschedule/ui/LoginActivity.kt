@@ -1,6 +1,5 @@
 package com.eilas.newcourseschedule.ui
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -10,14 +9,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.eilas.newcourseschedule.R
-import com.eilas.newcourseschedule.data.login
+import com.eilas.newcourseschedule.data.*
 import com.eilas.newcourseschedule.data.model.LoggedInUser
 import com.eilas.newcourseschedule.data.model.User
-import com.eilas.newcourseschedule.data.register
 import com.eilas.newcourseschedule.databinding.ActivityLoginBinding
 import com.eilas.newcourseschedule.databinding.AlertLoginRegisterBinding
-import com.eilas.newcourseschedule.data.autoLogin
-import com.eilas.newcourseschedule.data.saveUser
 import com.google.android.material.snackbar.Snackbar
 import java.lang.ref.WeakReference
 
@@ -30,6 +26,8 @@ class LoginActivity : AppCompatActivity() {
         when (it.what) {
 //            登录/注册成功
             3 -> {
+                loggedInUser = loggedInUser.copy(name = it.obj as String)
+                println(loggedInUser)
                 saveUser(this, loggedInUser)
                 startActivity(
                     Intent(
@@ -65,14 +63,17 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         activityLoginBinding = ActivityLoginBinding.inflate(layoutInflater)
         alertLoginRegisterBinding = AlertLoginRegisterBinding.inflate(layoutInflater)
-        setContentView(activityLoginBinding.root)
+        setContentView(activityLoginBinding.let {
+            textIsNotEmpty(it.id, it.pwd, unclickedView = it.btnLogin)
+            it.root
+        })
 
         autoLogin(this, activityLoginBinding.btnLogin)
 
         activityLoginBinding.btnLogin.setOnClickListener {
             loggedInUser = LoggedInUser(
-                activityLoginBinding.id.text.toString(),
-                activityLoginBinding.pwd.text.toString()
+                activityLoginBinding.id.editText?.text.toString(),
+                activityLoginBinding.pwd.editText?.text.toString()
             )
 
             login(loggedInUser, handler)
@@ -85,38 +86,32 @@ class LoginActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("用户不存在")
             .setMessage("注册？")
-            .setView(alertLoginRegisterBinding.root.apply {
-                parent?.apply {
-                    (this as ViewGroup).removeAllViews()
-                }
+            .setView(alertLoginRegisterBinding.let {
+                it.root.apply { (parent as ViewGroup?)?.removeAllViews() }
             })
-            .setPositiveButton(
-                "是",
-                DialogInterface.OnClickListener { dialog, which ->
-                    loggedInUser = LoggedInUser(
-                        activityLoginBinding.id.text.toString(),
-                        activityLoginBinding.pwd.text.toString(),
-                        alertLoginRegisterBinding.textName.text.toString()
-                            .apply {
-//                                未输入姓名则使用id
-                                if (length == 0)
-                                    activityLoginBinding.id.text.toString()
-                            },
-                        if (alertLoginRegisterBinding.groupSex.checkedRadioButtonId == R.id.radioButton_male)
-                            User.Sex.MALE
-                        else
-                            User.Sex.FEMALE
-                    )
+            .setPositiveButton("是") { dialog, which ->
+                loggedInUser = LoggedInUser(
+                    activityLoginBinding.id.editText?.text.toString(),
+                    activityLoginBinding.pwd.editText?.text.toString(),
+                    alertLoginRegisterBinding.textName.editText?.text.toString().apply {
+//                        未输入姓名则使用id
+                        if (length == 0)
+                            activityLoginBinding.id.editText?.text.toString()
+                    },
+                    if (alertLoginRegisterBinding.groupSex.checkedRadioButtonId == R.id.radioButton_male)
+                        User.Sex.MALE
+                    else
+                        User.Sex.FEMALE
+                )
 
-                    register(loggedInUser, handler)
-                })
+                register(loggedInUser, handler)
+            }
             .setNegativeButton("否", null)
             .setCancelable(false)
-            .apply {
-                if (!this@LoginActivity.isFinishing)
-                    show()
+            .show()
+            .getButton(AlertDialog.BUTTON_POSITIVE).let {
+                textIsNotEmpty(alertLoginRegisterBinding.textName, unclickedView = it)
             }
-
     }
 
     override fun onDestroy() {

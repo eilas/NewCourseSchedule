@@ -294,22 +294,25 @@ class WeekFragment : Fragment() {
 //                    添加课程
                     AlertDialog.Builder(context)
                         .setTitle("添加课程")
-                        .setView(alertAddCourseBinding.root)
+                        .setView(alertAddCourseBinding.let {
+//                            textIsNumber(it.courseName,it.strTime,it.lastTime,it.strWeek,it.lastWeek)
+                            it.root
+                        })
                         .setPositiveButton("是") { dialog, which ->
                             val courseScheduleActivity = context as CourseScheduleActivity
                             val itemStrEndTime = courseScheduleActivity.itemStrEndTime
                             val strTime =
-                                alertAddCourseBinding.strTime.text.toString().toInt() - 1
+                                alertAddCourseBinding.strTime.editText!!.text.toString().toInt() - 1
                             val endTIme =
-                                strTime + alertAddCourseBinding.lastTime.text.toString()
+                                strTime + alertAddCourseBinding.lastTime.editText!!.text.toString()
                                     .toInt() - 1
-                            val strWeek = alertAddCourseBinding.strWeek.text.toString()
+                            val strWeek = alertAddCourseBinding.strWeek.editText!!.text.toString()
                                 .toInt()
-                            val lastWeek = alertAddCourseBinding.lastWeek.text.toString()
+                            val lastWeek = alertAddCourseBinding.lastWeek.editText!!.text.toString()
                                 .toInt()
                             saveCourse(
                                 courseScheduleActivity.user, CourseInfo(
-                                    courseName = alertAddCourseBinding.courseName.text.toString(),
+                                    courseName = alertAddCourseBinding.courseName.editText!!.text.toString(),
 //                                        课程时间设置为课程第一周的具体时间
                                     courseStrTime1 = itemStrEndTime["strTime$strTime"]!!.let {
 //                                            将itemStrEndTime的时分与 通过firstWeek和strWeek获取的课程第一周 和startTime的周几拼接，courseEndTime1下同
@@ -339,13 +342,23 @@ class WeekFragment : Fragment() {
                                     }.time,
                                     strWeek = strWeek,
                                     lastWeek = lastWeek,
-                                    info = alertAddCourseBinding.courseInfo.text.toString(),
-                                    location = alertAddCourseBinding.location.text.toString()
+                                    info = alertAddCourseBinding.courseInfo.editText!!.text.toString(),
+                                    location = alertAddCourseBinding.location.editText!!.text.toString()
                                 ), this@WeekFragment.handler
                             )
                         }
                         .setNegativeButton("否", null)
                         .show()
+                        .getButton(AlertDialog.BUTTON_POSITIVE).let {
+                            textIsNotEmpty(
+                                alertAddCourseBinding.courseName,
+                                alertAddCourseBinding.strTime,
+                                alertAddCourseBinding.lastTime,
+                                alertAddCourseBinding.strWeek,
+                                alertAddCourseBinding.lastWeek,
+                                unclickedView = it
+                            )
+                        }
                 }
             }
 
