@@ -294,10 +294,7 @@ class WeekFragment : Fragment() {
 //                    添加课程
                     AlertDialog.Builder(context)
                         .setTitle("添加课程")
-                        .setView(alertAddCourseBinding.let {
-//                            textIsNumber(it.courseName,it.strTime,it.lastTime,it.strWeek,it.lastWeek)
-                            it.root
-                        })
+                        .setView(alertAddCourseBinding.root)
                         .setPositiveButton("是") { dialog, which ->
                             val courseScheduleActivity = context as CourseScheduleActivity
                             val itemStrEndTime = courseScheduleActivity.itemStrEndTime
@@ -350,14 +347,29 @@ class WeekFragment : Fragment() {
                         .setNegativeButton("否", null)
                         .show()
                         .getButton(AlertDialog.BUTTON_POSITIVE).let {
-                            textIsNotEmpty(
+                            TextCheck(
                                 alertAddCourseBinding.courseName,
                                 alertAddCourseBinding.strTime,
                                 alertAddCourseBinding.lastTime,
                                 alertAddCourseBinding.strWeek,
                                 alertAddCourseBinding.lastWeek,
-                                unclickedView = it
-                            )
+                            ).apply {
+                                textIsNotEmpty(
+                                    alertAddCourseBinding.courseName,
+                                    alertAddCourseBinding.strTime,
+                                    alertAddCourseBinding.lastTime,
+                                    alertAddCourseBinding.strWeek,
+                                    alertAddCourseBinding.lastWeek,
+                                    unclickedView = it
+                                )
+                                textIsNumber(
+                                    alertAddCourseBinding.strTime,
+                                    alertAddCourseBinding.lastTime,
+                                    alertAddCourseBinding.strWeek,
+                                    alertAddCourseBinding.lastWeek,
+                                    unclickedView = it
+                                )
+                            }
                         }
                 }
             }

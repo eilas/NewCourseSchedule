@@ -15,13 +15,9 @@ import org.junit.Test
 class ExampleUnitTest {
     @Test
     fun test() {
-        println(
-            HttpHelpers.obtain().okHttpClient.newCall(
-                Request.Builder().post(
-                    Gson().toJson(人类("张三")).toRequestBody("application/json".toMediaTypeOrNull())
-                ).url("http://192.168.1.199:8080/notify").build()
-            ).execute()
-        )
+        println("90".toInt())
+//        println("90.0".toInt())
+//        println("90.5".toInt())
     }
 
 

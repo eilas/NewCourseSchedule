@@ -64,7 +64,9 @@ class LoginActivity : AppCompatActivity() {
         activityLoginBinding = ActivityLoginBinding.inflate(layoutInflater)
         alertLoginRegisterBinding = AlertLoginRegisterBinding.inflate(layoutInflater)
         setContentView(activityLoginBinding.let {
-            textIsNotEmpty(it.id, it.pwd, unclickedView = it.btnLogin)
+            TextCheck(it.id, it.pwd).apply {
+                textIsNotEmpty(it.id, it.pwd, unclickedView = it.btnLogin)
+            }
             it.root
         })
 
@@ -110,7 +112,9 @@ class LoginActivity : AppCompatActivity() {
             .setCancelable(false)
             .show()
             .getButton(AlertDialog.BUTTON_POSITIVE).let {
-                textIsNotEmpty(alertLoginRegisterBinding.textName, unclickedView = it)
+                TextCheck(alertLoginRegisterBinding.textName).apply {
+                    textIsNotEmpty(alertLoginRegisterBinding.textName, unclickedView = it)
+                }
             }
     }
 
